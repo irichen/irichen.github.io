@@ -2,9 +2,9 @@
 
 Particles::Particles()
 {
-    int nx = 10;
-    int ny = 10;
-    int nz = 10;
+    int nx = 30;
+    int ny = 30;
+    int nz = 30;
     for(int x=0; x<nx; x++)
     {
         for(int y=0; y<ny; y++)
@@ -12,7 +12,7 @@ Particles::Particles()
             for(int z=0; z<nz; z++)
             {
               ParticleGridCube pgc;
-              if ((x + y + z) < 5) {
+              if ((abs(x - 0) + abs(y - 0) + abs(z - 0)) < 5) {
                 pgc.density = 5.0;
               } else {
                 pgc.density = 0.0;
@@ -25,9 +25,9 @@ Particles::Particles()
 
 void Particles::render() const
 {
-    int nx = 10;
-    int ny = 10;
-    int nz = 10;
+    int nx = 30;
+    int ny = 30;
+    int nz = 30;
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat mat_shininess[] = { 50.0 };
     GLfloat light_position[] = { 10.0, 10.0, 10.0, 0.0 };
@@ -55,7 +55,7 @@ void Particles::render() const
             {
               glPushMatrix();
               glTranslatef(x, y, z);
-              glutSolidSphere(particles[x * ny * nz + y * nz + z].density / 50, 10, 10);
+              glutSolidSphere(particles[x * ny * nz + y * nz + z].density / 30, 10, 10);
               glPopMatrix();
             }
         }
@@ -66,9 +66,9 @@ void Particles::render() const
 
 void Particles::step(int elapsed_time)
 {
-  int nx = 10;
-  int ny = 10;
-  int nz = 10;
+  int nx = 30;
+  int ny = 30;
+  int nz = 30;
   for(int x=0; x<nx; x++)
   {
       for(int y=0; y<ny; y++)
@@ -87,31 +87,37 @@ void Particles::step(int elapsed_time)
           for(int z=0; z<nz; z++)
           {
             int i = x * ny * nz + y * nz + z;
+
+            // Compute neighbor indices into particles
             std::vector<int> diffuseTo;
             if (x > 0) {
-              diffuseTo.push_back(i + ny * nz);
-            }
-            if (x < nx - 1) {
               diffuseTo.push_back(i - ny * nz);
             }
-            if (y > 0) {
-              diffuseTo.push_back(i + ny);
+            if (x < nx - 1) {
+              diffuseTo.push_back(i + ny * nz);
             }
-            if (y < ny - 1) {
+            if (y > 0) {
               diffuseTo.push_back(i - ny);
             }
-            if (z > 0) {
-              diffuseTo.push_back(i + 1);
+            if (y < ny - 1) {
+              diffuseTo.push_back(i + ny);
             }
-            if (z < nz - 1) {
+            if (z > 0) {
               diffuseTo.push_back(i - 1);
             }
+            if (z < nz - 1) {
+              diffuseTo.push_back(i + 1);
+            }
+
+            // Compute amount to diffuse
+            double diffuseAmount = particles[i].density / diffuseTo.size();
             for (int j = 0; j < diffuseTo.size(); j++) {
-              particles[diffuseTo[j]].new_density += particles[i].density / diffuseTo.size();
+              particles[diffuseTo[j]].new_density += diffuseAmount;
             }
           }
       }
   }
+  double t_density = 0.0;
   for(int x=0; x<nx; x++)
   {
       for(int y=0; y<ny; y++)
@@ -120,7 +126,9 @@ void Particles::step(int elapsed_time)
           {
             int i = x * ny * nz + y * nz + z;
             particles[i].density = particles[i].new_density;
+            t_density += particles[i].density;
           }
       }
   }
+  printf("%f\n", (float)t_density);
 }
