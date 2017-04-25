@@ -1,8 +1,8 @@
 #include "Particles.h"
 
-#define nx 100
-#define ny 100
-#define nz 100
+#define nx 500
+#define ny 500
+#define nz 500
 
 Particles::Particles()
 {
@@ -49,14 +49,16 @@ void Particles::render() const
         {
             for(int z=0; z<nz; z++)
             {
-              glPushMatrix();
-              glScalef(0.05, 0.05, 0.05);
-              glTranslatef(10, y - 50, z - 50);
-              int i = /**x * ny * nz*/ + y * nz + z;
+              int i = y * nz + z;
               double intensity = fmin(0.5, particles[i].density / 5.0);
-              glColor4f(intensity, intensity, intensity, 1.0);
-              glutSolidCube(0.99999);
-              glPopMatrix();
+              if (intensity > 0.05) {
+                glPushMatrix();
+                glScalef(0.01, 0.01, 0.01);
+                glTranslatef(10, y - 250, z - 250);
+                glColor4f(intensity, intensity, intensity, 1.0);
+                glutSolidCube(0.99999);
+                glPopMatrix();
+              }
             }
         }
     // }
@@ -94,9 +96,6 @@ void Particles::step(int elapsed_time)
             // if (x < nx - 1) {
             //   diffuseTo.push_back(i + ny * nz);
             // }
-            if (y > 0) {
-              diffuseTo.push_back(i - ny);
-            }
             if (y < ny - 1) {
               diffuseTo.push_back(i + ny);
               diffuseTo.push_back(i + ny);
@@ -110,11 +109,11 @@ void Particles::step(int elapsed_time)
               diffuseTo.push_back(i + 1);
             }
             // Compute amount to diffuse
-            double diffuseAmount = particles[i].density * 0.3 / diffuseTo.size();
+            double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
             for (int j = 0; j < diffuseTo.size(); j++) {
               particles[diffuseTo[j]].new_density += diffuseAmount;
             }
-            particles[i].density -= 1.03 * diffuseAmount * diffuseTo.size();
+            particles[i].density -= 1.001 * diffuseAmount * diffuseTo.size();
           }
       }
   // }
@@ -130,17 +129,22 @@ void Particles::step(int elapsed_time)
             t_density += particles[i].density;
           }
       }
-      int smoke_center_y = (int)((double)rand() / RAND_MAX * ny);
-      int smoke_center_z = (int)((double)rand() / RAND_MAX * nz);
-      for(int dy = smoke_center_y - 3; dy < smoke_center_y + 4; dy++)
-      {
-          for(int dz = smoke_center_z - 3; dz < smoke_center_z + 4; dz++)
-          {
-            if (dy > 0 && dy < ny - 1 && dz > 0 && dz < nz - 1) {
-              particles[dy * nz + dz].density = 3.0;
-            }
-          }
-      }
+      particles[250 * nz + 250].density = 4.0;
+      particles[250 * nz + 251].density = 4.0;
+      particles[250 * nz + 252].density = 4.0;
+      particles[250 * nz + 253].density = 4.0;
+      particles[250 * nz + 254].density = 4.0;
+      // int smoke_center_y = (int)((double)rand() / RAND_MAX * ny);
+      // int smoke_center_z = (int)((double)rand() / RAND_MAX * nz);
+      // for(int dy = smoke_center_y - 3; dy < smoke_center_y + 4; dy++)
+      // {
+      //     for(int dz = smoke_center_z - 3; dz < smoke_center_z + 4; dz++)
+      //     {
+      //       if (dy > 0 && dy < ny - 1 && dz > 0 && dz < nz - 1) {
+      //         particles[dy * nz + dz].density = 3.0;
+      //       }
+      //     }
+      // }
   // }
   // printf("%f\n", (float)t_density);
 }
