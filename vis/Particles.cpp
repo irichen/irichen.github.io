@@ -1,8 +1,11 @@
 #include "Particles.h"
 
-#define nx 500
-#define ny 500
-#define nz 500
+#define nx 400
+#define ny 400
+#define nz 400
+
+int smoke_x = 200;
+int smoke_y = 200;
 
 Particles::Particles()
 {
@@ -53,8 +56,8 @@ void Particles::render() const
               double intensity = fmin(0.5, particles[i].density / 5.0);
               if (intensity > 0.05) {
                 glPushMatrix();
-                glScalef(0.01, 0.01, 0.01);
-                glTranslatef(10, y - 250, z - 250);
+                glScalef(0.015, 0.015, 0.015);
+                glTranslatef(10, y - 200, z - 200);
                 glColor4f(intensity, intensity, intensity, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
@@ -100,7 +103,9 @@ void Particles::step(int elapsed_time)
               diffuseTo.push_back(i + ny);
               diffuseTo.push_back(i + ny);
               diffuseTo.push_back(i + ny);
-              diffuseTo.push_back(i + ny);
+              diffuseTo.push_back(i + 2 * ny);
+              diffuseTo.push_back(i + 2 * ny);
+              diffuseTo.push_back(i + 3 * ny);
             }
             if (z > 0) {
               diffuseTo.push_back(i - 1);
@@ -129,22 +134,28 @@ void Particles::step(int elapsed_time)
             t_density += particles[i].density;
           }
       }
-      particles[250 * nz + 250].density = 4.0;
-      particles[250 * nz + 251].density = 4.0;
-      particles[250 * nz + 252].density = 4.0;
-      particles[250 * nz + 253].density = 4.0;
-      particles[250 * nz + 254].density = 4.0;
-      // int smoke_center_y = (int)((double)rand() / RAND_MAX * ny);
-      // int smoke_center_z = (int)((double)rand() / RAND_MAX * nz);
-      // for(int dy = smoke_center_y - 3; dy < smoke_center_y + 4; dy++)
-      // {
-      //     for(int dz = smoke_center_z - 3; dz < smoke_center_z + 4; dz++)
-      //     {
-      //       if (dy > 0 && dy < ny - 1 && dz > 0 && dz < nz - 1) {
-      //         particles[dy * nz + dz].density = 3.0;
-      //       }
-      //     }
-      // }
+      int smoke_move = (int)((double)rand() / RAND_MAX * 4);
+      switch (smoke_move) {
+        case 0:
+          if (smoke_x >= 3) {
+            smoke_x -= 3;
+          }
+          break;
+        case 1:
+          if (smoke_y < nz - 3) {
+            smoke_y += 3;
+          }
+          break;
+      }
+      for(int dy = smoke_x - 1; dy < smoke_x + 2; dy++)
+      {
+          for(int dz = smoke_y - 1; dz < smoke_y + 2; dz++)
+          {
+            if (dy > 0 && dy < ny - 1 && dz > 0 && dz < nz - 1) {
+              particles[dy * nz + dz].density = 3.0;
+            }
+          }
+      }
   // }
   // printf("%f\n", (float)t_density);
 }
