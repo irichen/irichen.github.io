@@ -43,6 +43,14 @@
                 implementations of turbulence or velocity.
             </p>
 
+            <h2 align="middle">Progress Relative to Plan</h2>
+            <p>
+                Implementing the grid-based smoke simulation in a way that looked good proved far more difficult than initially anticipated, so we spent a lot of unplanned time on that. As a result, we didn't get to implementing the GPU-based computation that we
+                planned to get to for the milestone. Additionally, our original plan was to only render animations at the milestone, however with minor optimization and collapsing we were able to get the smoke animation to render real time. We are still on track to
+                finish our original baseline plan. Although the current simulation is 2D, its 3D-rendering-of-2D nature makes implementing that simple and a matter of increasing performance to support it, and the grid-based updater makes us able to add velocity and
+                vorticity fairly easily once we solve or find numerical solutions to the relevant fluid dynamics equations.
+            </p>
+
             <img src="img1.png" width=400px/>
 
             <h2 align="middle">Updated Plan</h2>
