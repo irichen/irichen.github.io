@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <style>
+            body {
+                padding: 100px;
+                width: 1000px;
+                margin: auto;
+                text-align: left;
+                font-weight: 300;
+                font-family: 'Open Sans', sans-serif;
+                color: #121212;
+            }
+            h1,
+            h2,
+            h3,
+            h4 {
+                font-family: 'Source Sans Pro', sans-serif;
+            }
+
+        </style>
+        <title>CS 184 Final Project Milestone</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
+        <h1 align="middle">Final Project: Smoke Simulator | Milestone</h1>
+        <h2 align="middle">Iris Chen, CS184-aeh</h2>
+        <h2 align="middle">Max Feng, CS184-afy</h2>
+
+        <div>
+
+            <h2 align="middle">Summary</h2>
+            <p>
+                We implemented a simple 2D grid-based smoke simulation. Using the particle-based fluid simulation starter code, we converted the particle-based method to a grid-based method of simulation. Although currently it appears 2D for runtime and debugging
+                purposes, it currently represents a 2D view of a plane of 3D simulation, to facilitate expansion. Our current method for fluid simulation relies on diffusion between neighboring grid squares. It decently simulates point sources of smoke, but lacks
+                implementations of turbulence or velocity.
+            </p>
+
+            <img src="img1.png" width=400px/>
+
+            <h2 align="middle">Updated Plan</h2>
+            <p>
+
+                <b>April 21</b>: Checkpoint Due
+                <br>
+                <ul>
+                    <li>
+                        <i>April 21-28
+                        </i><br>
+                        - Add in velocity, vorticity and other factors for more realistic smoke-simulation
+                        <br>
+                        - Use GPU-based computation for step updates (although a major bottleneck currently is actual rendering, not computation)
+                        <br>
+                        - Play with different variables and determine what makes for more aesthetically appealing and realistic renders
+                    </li><br>
+                    <li>
+                        <i>April 28-May 3
+                        </i><br>
+                        - Debugging and final touches
+                        <br>
+                        - Time allowing, add in mouse interactivity and/or solid obstacles
+                        <br>
+                        - Work on presentation and final report
+                    </li>
+                </li>
+            </ul>
+
+            <b>May 3-5</b>: Presentations and Reports Due
+            <br><br>
+        </p>
+
+        <h2 align="middle">Resources</h2>
+        <ul>
+            <li>
+                <a href="http://www.alanzucconi.com/2016/03/09/simulate-smoke-with-shaders/">
+                    Basic smoke rendering with shaders
+                </a>
+            </li>
+            <li>
+                <a href="http://cg.iit.bme.hu/visualization/gridfluid/downloads/gridfluid-sva-0.1.pdf">
+                    Advanced smoke rendering, solid obstacles
+                </a>
+            </li>
+            <li>
+                <a href="http://image.diku.dk/projects/media/roerbech.04.pdf">
+                    More interaction with objects
+                </a>
+            </li>
+            <li>
+                <a href="http://http.developer.nvidia.com/GPUGems/gpugems_ch38.html">
+                    Advanced smoke rendering
+                </a>
+            </li>
+            <li>
+                <a href="http://files.cnblogs.com/files/mincomp/Grid-based_Fluid_Simulation.pdf">
+                    Buoyancy, temperature, lerping to reduce dissipation
+                </a>
+            </li>
+        </ul>
+
+    </body>
+</html>
