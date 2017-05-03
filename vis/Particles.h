@@ -28,7 +28,7 @@ public:
     Particles();
     int compute_row_major(int x, int y) const;
     double lerp(double x, double v0, double v1) const;
-    void render() const;
+    void render(int color_opt) const;
     void step(int elapsed_time);
     void spawn_smoke(double dx, double dy);
 private:

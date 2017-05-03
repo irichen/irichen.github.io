@@ -25,6 +25,7 @@ const int render_step = 3;
 int mx, my;
 int last_time = -1;
 bool mouse_down = false;
+int color_opt = 1;
 
 Particles particles;
 
@@ -65,8 +66,18 @@ void keyboard(unsigned char c, int x, int y)
 {
     switch(c)
     {
-    case 'o' :
-        break;
+      case 'q':
+          color_opt = 1;
+          break;
+      case 'w':
+          color_opt = 2;
+          break;
+      case 'e' :
+          color_opt = 3;
+          break;
+      case 'r' :
+          color_opt = 4;
+          break;
     }
 }
 
@@ -83,8 +94,8 @@ int main(int argc, char** argv)
     glutIdleFunc(idle);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
-    glutMainLoop();
     glutKeyboardFunc(keyboard);
+    glutMainLoop();
 
     return EXIT_SUCCESS;
 }
@@ -108,7 +119,7 @@ void display(void)
             0, 0, 0,
             0, 1, 0);
 
-    particles.render();
+    particles.render(color_opt);
 
     glutSwapBuffers();
 }
