@@ -24,6 +24,8 @@ int frame = 0;
 const int render_step = 3;
 bool mouse_down = false;
 int color_opt = 1;
+int size = 10;
+bool pause = false;
 
 Particles particles;
 
@@ -33,7 +35,9 @@ void reshape(int width, int height);
 
 void idle(void)
 {
-    particles.step();
+    if (!pause) {
+      particles.step();
+    }
     glutPostRedisplay();
     if(frame/render_step >= 300)
         return;
@@ -72,6 +76,30 @@ void keyboard(unsigned char c, int x, int y)
           break;
       case 'r' :
           color_opt = 4;
+          break;
+      case 'u' :
+          particles.set_vel_field(1);
+          break;
+      case 'i' :
+          particles.set_vel_field(2);
+          break;
+      case 'o' :
+          particles.set_vel_field(3);
+          break;
+      case 'p' :
+          particles.set_vel_field(4);
+          break;
+      case 'j' :
+          particles.set_vel_field(5);
+          break;
+      case 't' :
+          size++;
+          break;
+      case 'y' :
+          size--;
+          break;
+      case 'a' :
+          pause = !pause;
           break;
     }
 }
@@ -121,11 +149,11 @@ void mouse(int button, int state, int x, int y)
 {
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
     {
-        particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
+        particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH), size);
     }
 }
 
 void motion(int x, int y)
 {
-    particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
+    particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH), size);
 }

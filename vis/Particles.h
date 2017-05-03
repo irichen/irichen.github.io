@@ -30,7 +30,7 @@ public:
     double lerp(double x, double v0, double v1) const;
     void render(int color_opt) const;
     void step();
-    void spawn_smoke(double dx, double dy);
+    void spawn_smoke(double dx, double dy, int size);
     void set_vel_field(int preset);
 private:
     struct ParticleGridCube

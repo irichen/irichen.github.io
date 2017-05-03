@@ -3,7 +3,7 @@
 #define nx 400
 #define ny 400
 #define scale 0.0135
-#define diffusionRate 0.6
+#define diffusionRate 0.75
 #define diffusionLoss 1.0
 #define advectionLoss 0.985
 
@@ -16,9 +16,7 @@ Particles::Particles()
           ParticleGridCube pgc;
           pgc.density = 0.0;
           pgc.vel_x = 1.5;
-          // pgc.vel_y = 1.5;
-          pgc.vel_y = ((double)rand() / RAND_MAX * 5) - 2.5;
-          // pgc.vel_y = ((y / 60)%2 && x > nx / 2) ? 1.5 : -1.5;
+          pgc.vel_y = ((double)rand() / RAND_MAX * 3) - 1.5;
           particles.push_back(pgc);
         }
     }
@@ -71,7 +69,7 @@ void Particles::render(int color_opt) const
                     glColor4f(intensity, intensity, intensity, 1.0);
                     break;
                   case 2:
-                    glColor4f(sin(intensity), sin(intensity + 0.4), sin(intensity + 0.8), intensity);
+                    glColor4f(intensity * sin(intensity), intensity * sin(intensity + 0.4), intensity * sin(intensity + 0.8), 1.0);
                     break;
                   case 3:
                     intensity = fmin(0.8, intensity);
@@ -174,7 +172,18 @@ void Particles::step()
             double u11 = particles[compute_row_major((int)backtrace_x + 1, (int)backtrace_y + 1)].density;
             double u0 = lerp(s, u00, u10);
             double u1 = lerp(s, u01, u11);
-            particles[i].density = advectionLoss * lerp(t, u0, u1);
+            particles[i].new_density = advectionLoss * lerp(t, u0, u1);
+        }
+    }
+
+    // Apply velocity term and reset summation
+    for(int y = 0; y < ny; y++)
+    {
+        for(int x = 0; x < nx; x++)
+        {
+          int i = compute_row_major(x, y);
+          particles[i].density = particles[i].new_density;
+          particles[i].new_density = 0;
         }
     }
 
@@ -191,20 +200,20 @@ void Particles::step()
     }
 }
 
-void Particles::spawn_smoke(double dx, double dy)
+void Particles::spawn_smoke(double dx, double dy, int size)
 {
     int dx_nx = (int)(dx * nx);
     int dy_ny = (int)(dy * ny);
-    int min_dx_nx = std::max(0, dx_nx - 12);
-    int max_dx_nx = std::min(nx - 1, dx_nx + 12);
-    int min_dy_ny = std::max(0, dy_ny - 12);
-    int max_dy_ny = std::min(ny - 1, dy_ny + 12);
+    int min_dx_nx = std::max(0, dx_nx - size);
+    int max_dx_nx = std::min(nx - 1, dx_nx + size);
+    int min_dy_ny = std::max(0, dy_ny - size);
+    int max_dy_ny = std::min(ny - 1, dy_ny + size);
     for(int x = min_dx_nx; x < max_dx_nx; x++)
     {
         for(int y = min_dy_ny; y < max_dy_ny; y++)
         {
-          if (pow(x - dx_nx, 2) + pow(y - dy_ny, 2) < 100) {
-              particles[compute_row_major(x, y)].density = 5.0;
+          if (pow(x - dx_nx, 2) + pow(y - dy_ny, 2) < pow(size, 2)) {
+              particles[compute_row_major(x, y)].density = 3.0;
           }
         }
     }
@@ -215,8 +224,54 @@ void Particles::set_vel_field(int preset)
     switch (preset)
     {
         case 1:
-          break;
+            for(int x = 0; x < nx; x++)
+            {
+                for(int y = 0; y < ny; y++)
+                {
+                  particles[compute_row_major(x, y)].vel_y = ((double)rand() / RAND_MAX * 3);
+                }
+            }
+            break;
         case 2:
-          break;
+            for(int x = 0; x < nx; x++)
+            {
+                for(int y = 0; y < ny; y++)
+                {
+                  particles[compute_row_major(x, y)].vel_y = ((double)rand() / RAND_MAX * 3) - 1.5;
+                }
+            }
+            break;
+        case 3:
+            for(int x = 0; x < nx; x++)
+            {
+                for(int y = 0; y < ny; y++)
+                {
+                  particles[compute_row_major(x, y)].vel_y = ((double)rand() / RAND_MAX * 3) - 3;
+                }
+            }
+            break;
+        case 4:
+            for(int x = 0; x < nx; x++)
+            {
+                for(int y = 0; y < ny; y++)
+                {
+                  if ((x / 60) % 2) {
+                    particles[compute_row_major(x, y)].vel_y = 1.5;
+                  } else {
+                    particles[compute_row_major(x, y)].vel_y = -1.5;
+                  }
+                }
+            }
+            break;
+        case 5:
+            for(int x = 0; x < nx; x++)
+            {
+                for(int y = 0; y < ny; y++)
+                {
+                  particles[compute_row_major(x, y)].vel_y = ((double)rand() / RAND_MAX * 7) - 3.5;
+                }
+            }
+            break;
+
     }
 }
