@@ -22,8 +22,6 @@ int width = 800;
 int height = 800;
 int frame = 0;
 const int render_step = 3;
-int mx, my;
-int last_time = -1;
 bool mouse_down = false;
 int color_opt = 1;
 

@@ -2,7 +2,8 @@
 
 #define nx 400
 #define ny 400
-#define scale 0.013
+#define scale 0.0135
+#define diffusionRate 0.6
 #define diffusionLoss 1.0
 #define advectionLoss 0.985
 
@@ -15,7 +16,9 @@ Particles::Particles()
           ParticleGridCube pgc;
           pgc.density = 0.0;
           pgc.vel_x = 1.5;
+          // pgc.vel_y = 1.5;
           pgc.vel_y = ((double)rand() / RAND_MAX * 5) - 2.5;
+          // pgc.vel_y = ((y / 60)%2 && x > nx / 2) ? 1.5 : -1.5;
           particles.push_back(pgc);
         }
     }
@@ -57,20 +60,27 @@ void Particles::render(int color_opt) const
         for(int x = 0; x < nx; x++)
         {
             int i = compute_row_major(x, y);
-            double intensity = fmin(1.0, particles[i].density / 2.0);
+            double intensity = particles[i].density / 3.0;
             if (intensity > 0.01) {
                 glPushMatrix();
                 glScalef(scale, scale, scale);
                 glTranslatef(10, x - (nx / 2), y - (ny / 2));
                 switch (color_opt) {
                   case 1:
+                    intensity = fmin(0.8, intensity);
                     glColor4f(intensity, intensity, intensity, 1.0);
                     break;
                   case 2:
                     glColor4f(sin(intensity), sin(intensity + 0.4), sin(intensity + 0.8), intensity);
                     break;
                   case 3:
+                    intensity = fmin(0.8, intensity);
                     glColor4f(1.0, 1.0, 1.0, intensity);
+                    break;
+                  case 4:
+                    intensity = particles[i].vel_x + 10 * particles[i].vel_y;
+                    printf("%f\n", intensity);
+                    glColor4f(sin(intensity)/2 + 0.5, sin(intensity + 1.5)/2 + 0.5, sin(intensity + 3.0)/2 + 0.5, 1.0);
                     break;
                 }
                 glutSolidCube(1.0);
@@ -120,7 +130,7 @@ void Particles::step()
             }
             // Compute amount to diffuse
             if (diffuseTo.size()) {
-              double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
+              double diffuseAmount = particles[i].density * diffusionRate / diffuseTo.size();
               for (int j = 0; j < diffuseTo.size(); j++) {
                 particles[diffuseTo[j]].new_density += diffuseAmount;
               }
@@ -197,5 +207,16 @@ void Particles::spawn_smoke(double dx, double dy)
               particles[compute_row_major(x, y)].density = 5.0;
           }
         }
+    }
+}
+
+void Particles::set_vel_field(int preset)
+{
+    switch (preset)
+    {
+        case 1:
+          break;
+        case 2:
+          break;
     }
 }

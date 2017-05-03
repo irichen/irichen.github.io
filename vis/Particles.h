@@ -31,6 +31,7 @@ public:
     void render(int color_opt) const;
     void step();
     void spawn_smoke(double dx, double dy);
+    void set_vel_field(int preset);
 private:
     struct ParticleGridCube
     {
