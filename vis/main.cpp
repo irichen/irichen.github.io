@@ -15,7 +15,7 @@ inline float clip(const float& n, const float& lower, const float& upper)
     return glm::max(lower, glm::min(n, upper));
 }
 
-float theta = M_PI/8;
+float theta = M_PI;
 float phi = -M_PI/8+M_PI_2;
 float dist = 2.5;
 int width = 800;
