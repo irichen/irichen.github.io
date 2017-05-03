@@ -10,7 +10,7 @@ Particles::Particles()
 {
     for(int y=0; y<nx; y++)
     {
-        for(int y=0; y<ny; y++)
+        for(int y = 0; y < ny; y++)
         {
           ParticleGridCube pgc;
           pgc.density = 0.0;
@@ -42,9 +42,9 @@ void Particles::render() const
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
     // Generate a cube at (x, y), colored based on the density there.
-    for(int x=0; x<nx; x++)
+    for(int x = 0; x < nx; x++)
     {
-        for(int y=0; y<ny; y++)
+        for(int y = 0; y < ny; y++)
         {
             int i = x * nx + y;
             double intensity = fmin(1.0, particles[i].density / 2.0);
@@ -66,21 +66,21 @@ void Particles::render() const
 void Particles::step(int elapsed_time)
 {
     // Initialize density updates to zero
-    for(int x=0; x<nx; x++)
+    for(int y = 0; y < ny; y++)
     {
-        for(int y=0; y<ny; y++)
+        for(int x = 0; x < nx; x++)
         {
-          int i = /**x * nx * ny*/ + x * nx + y;
+          int i = y * nx + x;
           particles[i].new_density = 0;
         }
     }
 
     // Compute diffusion term to immediate neighbors
-    for(int x=0; x<nx; x++)
+    for(int y = 0; y < ny; y++)
     {
-        for(int y=0; y<ny; y++)
+        for(int x = 0; x < nx; x++)
         {
-          int i = x * nx + y;
+          int i = y * nx + x;
 
           // Compute neighbor indices into particles
           std::vector<int> diffuseTo;
@@ -108,11 +108,11 @@ void Particles::step(int elapsed_time)
     }
 
     // Apply diffusion term and reset summation
-    for(int x=0; x<nx; x++)
+    for(int y = 0; y < ny; y++)
     {
-        for(int y=0; y<ny; y++)
+        for(int x = 0; x < nx; x++)
         {
-          int i = x * nx + y;
+          int i = y * nx + x;
           particles[i].density += particles[i].new_density;
           particles[i].new_density = 0;
         }
@@ -123,13 +123,15 @@ void Particles::step(int elapsed_time)
     for(int i = 0; i < nx * ny; ++i)
       diffuseFrom[i] = *(new std::vector<int>);
 
-    // Compute velocity term, based on backtracing the velocity ray based on (x, y).vel_x and vel_y
-    for(int x=0; x<nx; x++)
+    // Compute velocity term, based on backtracing the velocity ray 
+    // based on (x, y).vel_x and vel_y
+    for(int y = 0; y < ny; y++)
     {
-        for(int y=0; y<ny; y++)
+        for(int x = 0; x < nx; x++)
         {
-            // Compute j = i - velocity to backtrace, inserting current gridsquare into target list of match
-            int i = x * nx + y;
+            // Compute j = i - velocity to backtrace, inserting current 
+            // gridsquare into target list of match
+            int i = y * nx + x;
             int j = i - (int)particles[i].vel_x - (int)particles[i].vel_y * nx;
             if (j >= 0 && j < nx * ny) {
               diffuseFrom[j].push_back(i);
@@ -137,12 +139,13 @@ void Particles::step(int elapsed_time)
         }
     }
 
-    // Complete backtrace by diffusing from gridsquare backtraced to to all backtracing gridsquares
-    for (int x=0; x<nx; x++)
+    // Complete backtrace by diffusing from gridsquare backtraced to
+    // all backtracing gridsquares
+    for (int y = 0; y < ny; y++)
     {
-        for (int y=0; y<ny; y++)
+        for (int x = 0; x < nx; x++)
         {
-            int i = x * nx + y;
+            int i = y * nx + x;
             double diffuseAmount = particles[i].density / diffuseFrom[i].size();
             for (int j = 0; j < diffuseFrom[i].size(); j++) {
               particles[diffuseFrom[i][j]].new_density += diffuseAmount;
@@ -152,11 +155,11 @@ void Particles::step(int elapsed_time)
     }
 
     // Apply velocity term, reset sum
-    for(int x=0; x<nx; x++)
+    for(int y = 0; y < ny; y++)
     {
-        for(int y=0; y<ny; y++)
+        for(int x = 0; x < nx; x++)
         {
-            int i = x * nx + y;
+            int i = y * nx + x;
             particles[i].density += particles[i].new_density;
             particles[i].new_density = 0;
         }
