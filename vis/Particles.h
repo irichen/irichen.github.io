@@ -26,6 +26,7 @@
 class Particles {
 public:
     Particles();
+    int compute_row_major(int x, int y) const;
     void render() const;
     void step(int elapsed_time);
 private:
