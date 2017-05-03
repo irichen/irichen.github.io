@@ -114,6 +114,8 @@ void mouse(int button, int state, int x, int y)
 {
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
     {
+        printf("%f %f\n", 1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
+        particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
         mx = x;
         my = y;
     }
@@ -121,18 +123,18 @@ void mouse(int button, int state, int x, int y)
 
 void motion(int x, int y)
 {
-    int dx = x - mx;
-    int dy = y - my;
-    mx = x;
-    my = y;
-    if(abs(dx) > abs(dy))
-        theta += dx*0.005;
-    else
-        phi -= dy*0.005;
-    if(theta > 2*M_PI)
-        theta -= 2*M_PI;
-    if(theta < -2*M_PI)
-        theta += 2*M_PI;
-    phi = clip(phi, M_PI/12, M_PI*11/12);
-    glutPostRedisplay();
+    // int dx = x - mx;
+    // int dy = y - my;
+    // mx = x;
+    // my = y;
+    // if(abs(dx) > abs(dy))
+    //     theta += dx*0.005;
+    // else
+    //     phi -= dy*0.005;
+    // if(theta > 2*M_PI)
+    //     theta -= 2*M_PI;
+    // if(theta < -2*M_PI)
+    //     theta += 2*M_PI;
+    // phi = clip(phi, M_PI/12, M_PI*11/12);
+    // glutPostRedisplay();
 }

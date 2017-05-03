@@ -27,8 +27,10 @@ class Particles {
 public:
     Particles();
     int compute_row_major(int x, int y) const;
+    double lerp(double x, double v0, double v1) const;
     void render() const;
     void step(int elapsed_time);
+    void spawn_smoke(double dx, double dy);
 private:
     struct ParticleGridCube
     {

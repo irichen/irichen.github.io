@@ -14,8 +14,12 @@ Particles::Particles()
         {
           ParticleGridCube pgc;
           pgc.density = 0.0;
-          pgc.vel_x = 2.0;
-          pgc.vel_y = 0.0;
+          if (abs(x - 200) + abs(y - 200) < 12) {
+              // pgc.density = 5.0;
+          }
+          pgc.vel_x = 1.5;
+          // pgc.vel_x = ((double)rand() / RAND_MAX * 3) - 0.75;
+          pgc.vel_y = ((double)rand() / RAND_MAX * 3) - 1.5;
           particles.push_back(pgc);
         }
     }
@@ -24,6 +28,11 @@ Particles::Particles()
 int Particles::compute_row_major(int x, int y) const
 {
   return x + nx * y;
+}
+
+double Particles::lerp(double x, double v0, double v1) const
+{
+  return v0 + x * (v1 - v0);
 }
 
 void Particles::render() const
@@ -51,12 +60,13 @@ void Particles::render() const
     {
         for(int x = 0; x < nx; x++)
         {
-            double intensity = fmin(0.4, particles[compute_row_major(x, y)].density / 2.0);
-            if (intensity > 0.0001) {
+            int i = compute_row_major(x, y);
+            double intensity = fmin(0.4, particles[i].density / 2.0);
+            if (intensity > 0.01) {
                 glPushMatrix();
                 glScalef(0.01, 0.01, 0.01);
                 glTranslatef(10, x - (nx / 2), y - (ny / 2));
-                glColor4f(0.4, 0.4 - intensity, 0.0, 1.0);
+                glColor4f(intensity, intensity, intensity, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
             }
@@ -84,30 +94,33 @@ void Particles::step(int elapsed_time)
         for(int x = 0; x < nx; x++)
         {
           int i = compute_row_major(x, y);
+          if (particles[i].density > 0.01) {
+            // Compute neighbor indices into particles
+            std::vector<int> diffuseTo;
 
-          // Compute neighbor indices into particles
-          std::vector<int> diffuseTo;
-
-          // Standard diffusion term
-          if (y > 0) {
-            diffuseTo.push_back(i - nx);
-          }
-          if (y < ny - 1) {
-            diffuseTo.push_back(i + nx);
-          }
-          if (x > 0) {
-            diffuseTo.push_back(i - 1);
-          }
-          if (x < nx - 1) {
-            diffuseTo.push_back(i + 1);
-          }
-          // Compute amount to diffuse
-          if (diffuseTo.size()) {
-            double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
-            for (int j = 0; j < diffuseTo.size(); j++) {
-              particles[diffuseTo[j]].new_density += diffuseAmount;
+            // Standard diffusion term
+            if (y > 0) {
+              diffuseTo.push_back(i - nx);
             }
-            particles[i].density -= 1.05 * diffuseAmount * diffuseTo.size();
+            if (y < ny - 1) {
+              diffuseTo.push_back(i + nx);
+            }
+            if (x > 0) {
+              diffuseTo.push_back(i - 1);
+            }
+            if (x < nx - 1) {
+              diffuseTo.push_back(i + 1);
+            }
+            // Compute amount to diffuse
+            if (diffuseTo.size()) {
+              double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
+              for (int j = 0; j < diffuseTo.size(); j++) {
+                particles[diffuseTo[j]].new_density += diffuseAmount;
+              }
+              particles[i].density -= 1.05 * diffuseAmount * diffuseTo.size();
+            }
+          } else {
+            particles[i].density = 0.0;
           }
         }
     }
@@ -123,79 +136,41 @@ void Particles::step(int elapsed_time)
         }
     }
 
-    // Initialize diffusion lists to zero
-    std::vector<std::vector<int>> diffuseFrom((nx * ny));
-    for(int i = 0; i < nx * ny; ++i)
-      diffuseFrom[i] = *(new std::vector<int>);
-
     // Compute velocity term, based on backtracing the velocity ray
     // based on (x, y).vel_x and vel_y
     for(int y = 0; y < ny; y++)
     {
         for(int x = 0; x < nx; x++)
         {
-
             // Compute j = i - velocity to backtrace, inserting current
             // gridsquare into target list of match
             int i = compute_row_major(x, y);
-            int backtrace_x = x - (int)particles[i].vel_x;
-            backtrace_x = std::max(0, std::min(nx - 1, backtrace_x));
-            int backtrace_y = y - (int)particles[i].vel_y;
-            backtrace_y = std::max(0, std::min(ny - 1, backtrace_y));
-            diffuseFrom[compute_row_major(backtrace_x, backtrace_y)].push_back(i);
+            double backtrace_x = x - particles[i].vel_x;
+            backtrace_x = fmax(1, fmin(nx - 2, backtrace_x));
+            double backtrace_y = y - particles[i].vel_y;
+            backtrace_y = fmax(1, fmin(ny - 2, backtrace_y));
+            double s = backtrace_x - (int)backtrace_x;
+            double t = backtrace_y - (int)backtrace_y;
+            double u00 = particles[compute_row_major((int)backtrace_x, (int)backtrace_y)].density;
+            double u01 = particles[compute_row_major((int)backtrace_x, (int)backtrace_y + 1)].density;
+            double u10 = particles[compute_row_major((int)backtrace_x + 1, (int)backtrace_y)].density;
+            double u11 = particles[compute_row_major((int)backtrace_x + 1, (int)backtrace_y + 1)].density;
+            double u0 = lerp(s, u00, u10);
+            double u1 = lerp(s, u01, u11);
+            particles[i].density = 0.98 * lerp(t, u0, u1);
         }
     }
+}
 
-    // Complete backtrace by diffusing from gridsquare backtraced to
-    // all backtracing gridsquares
-    for(int y = 0; y < ny; y++)
+void Particles::spawn_smoke(double dx, double dy)
+{
+    printf("smoke coords %d %d\n", (int)(dx * nx), (int)(dy * ny));
+    for(int x = 0; x < nx; x++)
     {
-        for(int x = 0; x < nx; x++)
+        for(int y = 0; y < ny; y++)
         {
-            int i = compute_row_major(x, y);
-            if (diffuseFrom[i].size()) {
-                double diffuseAmount = particles[i].density / diffuseFrom[i].size();
-                for (int j = 0; j < diffuseFrom[i].size(); j++) {
-                  particles[diffuseFrom[i][j]].new_density += diffuseAmount;
-                }
-                particles[i].density -= 1.05 * diffuseAmount * diffuseFrom[i].size();
-            }
-        }
-    }
-
-    // Apply velocity term, reset sum
-    for(int y = 0; y < ny; y++)
-    {
-        for(int x = 0; x < nx; x++)
-        {
-            int i = compute_row_major(x, y);
-            particles[i].density += particles[i].new_density;
-            particles[i].new_density = 0;
-        }
-    }
-
-    // Control random movement of smoke source
-    // int smoke_move = (int)((double)rand() / RAND_MAX * 4);
-    // switch (smoke_move) {
-    //   case 0:
-    //     if (smoke_x >= 3) {
-    //       smoke_x -= 3;
-    //     }
-    //     break;
-    //   case 1:
-    //     if (smoke_y < ny - 3) {
-    //       smoke_y += 3;
-    //     }
-    //     break;
-    // }
-
-    // Spawn smoke at smoke source
-    for(int dx = smoke_x - 1; dx < smoke_x + 2; dx++)
-    {
-        for(int dy = smoke_y - 1; dy < smoke_y + 2; dy++)
-        {
-          if (dx > 0 && dx < nx - 1 && dy > 0 && dy < ny - 1) {
-            particles[dx + nx * dy].density = 3.0;
+          if (abs(x - (int)(dx * nx)) + abs(y - (int)(dy * ny)) < 12) {
+              particles[compute_row_major(x, y)].density = 5.0;
           }
         }
     }
