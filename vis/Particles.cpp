@@ -2,7 +2,7 @@
 
 #define nx 400
 #define ny 400
-#define scale 0.0135
+#define scale 0.013
 #define diffusionLoss 1.0
 #define advectionLoss 0.985
 
@@ -15,7 +15,7 @@ Particles::Particles()
           ParticleGridCube pgc;
           pgc.density = 0.0;
           pgc.vel_x = 1.5;
-          pgc.vel_y = ((double)rand() / RAND_MAX * 3) - 1.5;
+          pgc.vel_y = ((double)rand() / RAND_MAX * 5) - 2.5;
           particles.push_back(pgc);
         }
     }
@@ -83,7 +83,7 @@ void Particles::render(int color_opt) const
     glPopAttrib();
 }
 
-void Particles::step(int elapsed_time)
+void Particles::step()
 {
     // Initialize density updates to zero
     for(int y = 0; y < ny; y++)

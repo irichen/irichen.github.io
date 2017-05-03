@@ -35,10 +35,7 @@ void reshape(int width, int height);
 
 void idle(void)
 {
-    if (!(frame % 10)) {
-    int new_time = glutGet(GLUT_ELAPSED_TIME);
-    particles.step(new_time - last_time);
-    last_time = new_time;}
+    particles.step();
     glutPostRedisplay();
     if(frame/render_step >= 300)
         return;
