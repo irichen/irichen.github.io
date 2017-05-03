@@ -115,12 +115,12 @@ void display(void)
 
 void mouse(int button, int state, int x, int y)
 {
-    // if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-    // {
-    //     mouse_down = true;
-    //     mx = x;
-    //     my = y;
-    // }
+    if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+    {
+        particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
+        // mx = x;
+        // my = y;
+    }
     // if(button == GLUT_LEFT_BUTTON && state == GLUT_UP)
     // {
     //     // mouse_down = false;

@@ -2,6 +2,7 @@
 
 #define nx 400
 #define ny 400
+#define scale 0.0135
 
 int smoke_x = 200;
 int smoke_y = 200;
@@ -14,11 +15,8 @@ Particles::Particles()
         {
           ParticleGridCube pgc;
           pgc.density = 0.0;
-          if (abs(x - 200) + abs(y - 200) < 12) {
-              // pgc.density = 5.0;
-          }
           pgc.vel_x = 1.5;
-          // pgc.vel_x = ((double)rand() / RAND_MAX * 3) - 0.75;
+          // pgc.vel_x = ((double)rand() / RAND_MAX * 3) - 0.25;
           pgc.vel_y = ((double)rand() / RAND_MAX * 3) - 1.5;
           particles.push_back(pgc);
         }
@@ -64,7 +62,7 @@ void Particles::render() const
             double intensity = fmin(0.4, particles[i].density / 2.0);
             if (intensity > 0.01) {
                 glPushMatrix();
-                glScalef(0.01, 0.01, 0.01);
+                glScalef(scale, scale, scale);
                 glTranslatef(10, x - (nx / 2), y - (ny / 2));
                 glColor4f(intensity, intensity, intensity, 1.0);
                 glutSolidCube(0.99999);
@@ -164,11 +162,17 @@ void Particles::step(int elapsed_time)
 
 void Particles::spawn_smoke(double dx, double dy)
 {
-    for(int x = 0; x < nx; x++)
+    int dx_nx = (int)(dx * nx);
+    int dy_ny = (int)(dy * ny);
+    int min_dx_nx = std::max(0, dx_nx - 12);
+    int max_dx_nx = std::min(nx - 1, dx_nx + 12);
+    int min_dy_ny = std::max(0, dy_ny - 12);
+    int max_dy_ny = std::min(ny - 1, dy_ny + 12);
+    for(int x = min_dx_nx; x < max_dx_nx; x++)
     {
-        for(int y = 0; y < ny; y++)
+        for(int y = min_dy_ny; y < max_dy_ny; y++)
         {
-          if (abs(x - (int)(dx * nx)) + abs(y - (int)(dy * ny)) < 12) {
+          if (abs(x - dx_nx) + abs(y - dy_ny) < 12) {
               particles[compute_row_major(x, y)].density = 5.0;
           }
         }
