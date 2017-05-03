@@ -51,12 +51,12 @@ void Particles::render() const
     {
         for(int x = 0; x < nx; x++)
         {
-            double intensity = fmin(1.0, particles[compute_row_major(x, y)].density / 2.0);
-            if (intensity > 0.05) {
+            double intensity = fmin(0.4, particles[compute_row_major(x, y)].density / 2.0);
+            if (intensity > 0.0001) {
                 glPushMatrix();
-                glScalef(0.015, 0.015, 0.015);
-                glTranslatef(10, x - 200, y - 200);
-                glColor4f(0.0, intensity, 1.0 - intensity, 1.0);
+                glScalef(0.01, 0.01, 0.01);
+                glTranslatef(10, x - (nx / 2), y - (ny / 2));
+                glColor4f(0.4, 0.4 - intensity, 0.0, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
             }
@@ -107,7 +107,7 @@ void Particles::step(int elapsed_time)
             for (int j = 0; j < diffuseTo.size(); j++) {
               particles[diffuseTo[j]].new_density += diffuseAmount;
             }
-            particles[i].density -= 1.01 * diffuseAmount * diffuseTo.size();
+            particles[i].density -= 1.05 * diffuseAmount * diffuseTo.size();
           }
         }
     }
@@ -158,7 +158,7 @@ void Particles::step(int elapsed_time)
                 for (int j = 0; j < diffuseFrom[i].size(); j++) {
                   particles[diffuseFrom[i][j]].new_density += diffuseAmount;
                 }
-                particles[i].density -= 1.01 * diffuseAmount * diffuseFrom[i].size();
+                particles[i].density -= 1.05 * diffuseAmount * diffuseFrom[i].size();
             }
         }
     }
