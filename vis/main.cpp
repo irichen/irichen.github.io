@@ -118,9 +118,7 @@ void display(void)
     gluLookAt(dist*sin(phi)*cos(theta), dist*cos(phi), dist*sin(phi)*sin(theta),
             0, 0, 0,
             0, 1, 0);
-
     particles.render(color_opt);
-
     glutSwapBuffers();
 }
 
@@ -129,32 +127,10 @@ void mouse(int button, int state, int x, int y)
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
     {
         particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
-        // mx = x;
-        // my = y;
     }
-    // if(button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-    // {
-    //     // mouse_down = false;
-    //     mx = x;
-    //     my = y;
-    // }
 }
 
 void motion(int x, int y)
 {
     particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
-    // int dx = x - mx;
-    // int dy = y - my;
-    // mx = x;
-    // my = y;
-    // if(abs(dx) > abs(dy))
-    //     theta += dx*0.005;
-    // else
-    //     phi -= dy*0.005;
-    // if(theta > 2*M_PI)
-    //     theta -= 2*M_PI;
-    // if(theta < -2*M_PI)
-    //     theta += 2*M_PI;
-    // phi = clip(phi, M_PI/12, M_PI*11/12);
-    // glutPostRedisplay();
 }

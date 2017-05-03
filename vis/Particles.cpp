@@ -15,7 +15,6 @@ Particles::Particles()
           ParticleGridCube pgc;
           pgc.density = 0.0;
           pgc.vel_x = 1.5;
-          // pgc.vel_x = ((double)rand() / RAND_MAX * 3) - 0.25;
           pgc.vel_y = ((double)rand() / RAND_MAX * 3) - 1.5;
           particles.push_back(pgc);
         }
