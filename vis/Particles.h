@@ -36,7 +36,9 @@ private:
     {
         double new_density;
         double density;
+        double new_vel_x;
         double vel_x;
+        double new_vel_y;
         double vel_y;
     };
 

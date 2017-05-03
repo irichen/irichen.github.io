@@ -18,6 +18,14 @@ Particles::Particles()
           pgc.vel_x = 1.5;
           // pgc.vel_x = ((double)rand() / RAND_MAX * 3) - 0.25;
           pgc.vel_y = ((double)rand() / RAND_MAX * 3) - 1.5;
+          // int cx = 200;
+          // int cy = 200;
+          // if (abs(x - cx) + abs(y - cy) < 10) {
+          //   int d_cx = x - cx;
+          //   int d_cy = y - cy;
+          //   pgc.vel_y = d_cx / 10;
+          //   pgc.vel_x = -d_cy / 10;
+          // }
           particles.push_back(pgc);
         }
     }
@@ -77,62 +85,78 @@ void Particles::render() const
 
 void Particles::step(int elapsed_time)
 {
+    for (int k = 0; k < 20; k++)
+    {
+        for(int y = 1; y < ny - 1; y++)
+        {
+            for(int x = 1; x < nx - 1; x++)
+            {
+                int i = compute_row_major(x, y);
+                particles[i].new_density = particles[i].density + 0.01 * (particles[i + nx].new_density + particles[i - nx].new_density + particles[i + 1].new_density + particles[i - 1].new_density) / 1.04;
+            }
+        }
+    }
+
     // Initialize density updates to zero
     for(int y = 0; y < ny; y++)
     {
         for(int x = 0; x < nx; x++)
         {
-          particles[compute_row_major(x, y)].new_density = 0;
+          int i = compute_row_major(x, y);
+          particles[i].density = particles[i].new_density;
+          particles[i].new_density = 0;
         }
     }
 
     // Compute diffusion term to immediate neighbors
-    for(int y = 0; y < ny; y++)
-    {
-        for(int x = 0; x < nx; x++)
-        {
-          int i = compute_row_major(x, y);
-          if (particles[i].density > 0.01) {
-            // Compute neighbor indices into particles
-            std::vector<int> diffuseTo;
+    // for(int y = 0; y < ny; y++)
+    // {
+    //     for(int x = 0; x < nx; x++)
+    //     {
+    //       int i = compute_row_major(x, y);
+    //       if (particles[i].density > 0.01) {
+    //         // Compute neighbor indices into particles
+    //         std::vector<int> diffuseTo;
+    //
+    //         // Standard diffusion term
+    //         if (y > 0) {
+    //           diffuseTo.push_back(i - nx);
+    //         }
+    //         if (y < ny - 1) {
+    //           diffuseTo.push_back(i + nx);
+    //         }
+    //         if (x > 0) {
+    //           diffuseTo.push_back(i - 1);
+    //         }
+    //         if (x < nx - 1) {
+    //           diffuseTo.push_back(i + 1);
+    //         }
+    //         // Compute amount to diffuse
+    //         if (diffuseTo.size()) {
+    //           double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
+    //           for (int j = 0; j < diffuseTo.size(); j++) {
+    //             particles[diffuseTo[j]].new_density += diffuseAmount;
+    //           }
+    //           particles[i].density -= 1.05 * diffuseAmount * diffuseTo.size();
+    //         }
+    //       } else {
+    //         particles[i].density = 0.0;
+    //       }
+    //     }
+    // }
+    //
+    // // Apply diffusion term and reset summation
+    // for(int y = 0; y < ny; y++)
+    // {
+    //     for(int x = 0; x < nx; x++)
+    //     {
+    //       int i = compute_row_major(x, y);
+    //       particles[i].density += particles[i].new_density;
+    //       particles[i].new_density = 0;
+    //     }
+    // }
 
-            // Standard diffusion term
-            if (y > 0) {
-              diffuseTo.push_back(i - nx);
-            }
-            if (y < ny - 1) {
-              diffuseTo.push_back(i + nx);
-            }
-            if (x > 0) {
-              diffuseTo.push_back(i - 1);
-            }
-            if (x < nx - 1) {
-              diffuseTo.push_back(i + 1);
-            }
-            // Compute amount to diffuse
-            if (diffuseTo.size()) {
-              double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
-              for (int j = 0; j < diffuseTo.size(); j++) {
-                particles[diffuseTo[j]].new_density += diffuseAmount;
-              }
-              particles[i].density -= 1.05 * diffuseAmount * diffuseTo.size();
-            }
-          } else {
-            particles[i].density = 0.0;
-          }
-        }
-    }
 
-    // Apply diffusion term and reset summation
-    for(int y = 0; y < ny; y++)
-    {
-        for(int x = 0; x < nx; x++)
-        {
-          int i = compute_row_major(x, y);
-          particles[i].density += particles[i].new_density;
-          particles[i].new_density = 0;
-        }
-    }
 
     // Compute velocity term, based on backtracing the velocity ray
     // based on (x, y).vel_x and vel_y
@@ -158,6 +182,63 @@ void Particles::step(int elapsed_time)
             particles[i].density = 0.98 * lerp(t, u0, u1);
         }
     }
+
+    // for (int k = 0; k < 20; k++)
+    // {
+    //     for(int y = 1; y < ny - 1; y++)
+    //     {
+    //         for(int x = 1; x < nx - 1; x++)
+    //         {
+    //             int i = compute_row_major(x, y);
+    //             particles[i].new_vel_x = particles[i].vel_x + 0.01 * (particles[i + nx].new_vel_x + particles[i - nx].new_vel_x + particles[i + 1].new_vel_x + particles[i - 1].new_vel_x) / 1.04;
+    //         }
+    //     }
+    // }
+    //
+    // // Initialize density updates to zero
+    // for(int y = 0; y < ny; y++)
+    // {
+    //     for(int x = 0; x < nx; x++)
+    //     {
+    //       int i = compute_row_major(x, y);
+    //       particles[i].density = particles[i].new_density;
+    //       particles[i].new_density = 0;
+    //     }
+    // }
+
+    // Diffuse the velocity field
+
+
+    // Self-advect the velocity field
+    // for(int y = 0; y < ny; y++)
+    // {
+    //     for(int x = 0; x < nx; x++)
+    //     {
+    //         // Compute j = i - velocity to backtrace, inserting current
+    //         // gridsquare into target list of match
+    //         int i = compute_row_major(x, y);
+    //         double backtrace_x = x - particles[i].vel_x;
+    //         backtrace_x = fmax(1, fmin(nx - 2, backtrace_x));
+    //         double backtrace_y = y - particles[i].vel_y;
+    //         backtrace_y = fmax(1, fmin(ny - 2, backtrace_y));
+    //         double s = backtrace_x - (int)backtrace_x;
+    //         double t = backtrace_y - (int)backtrace_y;
+    //         double u00_x = particles[compute_row_major((int)backtrace_x, (int)backtrace_y)].vel_x;
+    //         double u01_x = particles[compute_row_major((int)backtrace_x, (int)backtrace_y + 1)].vel_x;
+    //         double u10_x = particles[compute_row_major((int)backtrace_x + 1, (int)backtrace_y)].vel_x;
+    //         double u11_x = particles[compute_row_major((int)backtrace_x + 1, (int)backtrace_y + 1)].vel_x;
+    //         double u0_x = lerp(s, u00_x, u10_x);
+    //         double u1_x = lerp(s, u01_x, u11_x);
+    //         particles[i].vel_x = lerp(t, u0_x, u1_x);
+    //         double u00_y = particles[compute_row_major((int)backtrace_x, (int)backtrace_y)].vel_y;
+    //         double u01_y = particles[compute_row_major((int)backtrace_x, (int)backtrace_y + 1)].vel_y;
+    //         double u10_y = particles[compute_row_major((int)backtrace_x + 1, (int)backtrace_y)].vel_y;
+    //         double u11_y = particles[compute_row_major((int)backtrace_x + 1, (int)backtrace_y + 1)].vel_y;
+    //         double u0_y = lerp(s, u00_y, u10_y);
+    //         double u1_y = lerp(s, u01_y, u11_y);
+    //         particles[i].vel_y = lerp(t, u0_y, u1_y);
+    //     }
+    // }
 }
 
 void Particles::spawn_smoke(double dx, double dy)
