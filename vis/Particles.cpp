@@ -41,25 +41,24 @@ void Particles::render() const
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    // for(int x=0; x<nx; x++)
-    // {
-        for(int y=0; y<ny; y++)
+
+    // Generate a cube at (x, y), colored based on the density there.
+    for(int y=0; y<ny; y++)
+    {
+        for(int z=0; z<nz; z++)
         {
-            for(int z=0; z<nz; z++)
-            {
-              int i = y * nz + z;
-              double intensity = fmin(1.0, particles[i].density / 2.0);
-              if (intensity > 0.05) {
+            int i = y * nz + z;
+            double intensity = fmin(1.0, particles[i].density / 2.0);
+            if (intensity > 0.05) {
                 glPushMatrix();
                 glScalef(0.015, 0.015, 0.015);
                 glTranslatef(10, y - 200, z - 200);
                 glColor4f(0.0, intensity, 1.0 - intensity, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
-              }
             }
         }
-    // }
+    }
     glDisable(GL_BLEND);
 
     glPopAttrib();
@@ -67,125 +66,126 @@ void Particles::render() const
 
 void Particles::step(int elapsed_time)
 {
-  // for(int x=0; x<nx; x++)
-  // {
-      for(int y=0; y<ny; y++)
-      {
-          for(int z=0; z<nz; z++)
-          {
-            int i = /**x * ny * nz*/ + y * nz + z;
-            particles[i].new_density = 0;
+    // Initialize density updates to zero
+    for(int y=0; y<ny; y++)
+    {
+        for(int z=0; z<nz; z++)
+        {
+          int i = /**x * ny * nz*/ + y * nz + z;
+          particles[i].new_density = 0;
+        }
+    }
+
+    // Compute diffusion term to immediate neighbors
+    for(int y=0; y<ny; y++)
+    {
+        for(int z=0; z<nz; z++)
+        {
+          int i = y * nz + z;
+
+          // Compute neighbor indices into particles
+          std::vector<int> diffuseTo;
+
+          // Standard diffusion term
+          if (y > 0) {
+            diffuseTo.push_back(i - ny);
           }
-      }
-  // }
-  // for(int x=0; x<nx; x++)
-  // {
-      for(int y=0; y<ny; y++)
-      {
-          for(int z=0; z<nz; z++)
-          {
-            int i = y * nz + z;
-
-            // Compute neighbor indices into particles
-            std::vector<int> diffuseTo;
-
-            // Standard diffusion term
-            if (y > 0) {
-              diffuseTo.push_back(i - ny);
-            }
-            if (y < ny - 1) {
-              diffuseTo.push_back(i + ny);
-            }
-            if (z > 0) {
-              diffuseTo.push_back(i - 1);
-            }
-            if (z < nz - 1) {
-              diffuseTo.push_back(i + 1);
-            }
-            // Compute amount to diffuse
-            double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
-            for (int j = 0; j < diffuseTo.size(); j++) {
-              particles[diffuseTo[j]].new_density += diffuseAmount;
-            }
-            particles[i].density -= 1.01 * diffuseAmount * diffuseTo.size();
+          if (y < ny - 1) {
+            diffuseTo.push_back(i + ny);
           }
-      }
-
-      for(int y=0; y<ny; y++)
-      {
-          for(int z=0; z<nz; z++)
-          {
-            int i = y * nz + z;
-            particles[i].density += particles[i].new_density;
-            particles[i].new_density = 0;
+          if (z > 0) {
+            diffuseTo.push_back(i - 1);
           }
-      }
+          if (z < nz - 1) {
+            diffuseTo.push_back(i + 1);
+          }
+          // Compute amount to diffuse
+          double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
+          for (int j = 0; j < diffuseTo.size(); j++) {
+            particles[diffuseTo[j]].new_density += diffuseAmount;
+          }
+          particles[i].density -= 1.01 * diffuseAmount * diffuseTo.size();
+        }
+    }
 
+    // Apply diffusion term and reset summation
+    for(int y=0; y<ny; y++)
+    {
+        for(int z=0; z<nz; z++)
+        {
+          int i = y * nz + z;
+          particles[i].density += particles[i].new_density;
+          particles[i].new_density = 0;
+        }
+    }
 
-      std::vector<std::vector<int>> diffuseFrom((ny * nz));
-      for(int i = 0; i < ny * nz; ++i)
-        diffuseFrom[i] = *(new std::vector<int>);
+    // Initialize diffusion lists to zero
+    std::vector<std::vector<int>> diffuseFrom((ny * nz));
+    for(int i = 0; i < ny * nz; ++i)
+      diffuseFrom[i] = *(new std::vector<int>);
 
-      for(int y=0; y<ny; y++)
-      {
-          for(int z=0; z<nz; z++)
-          {
+    // Compute velocity term, based on backtracing the velocity ray based on (x, y).vel_x and vel_y
+    for(int y=0; y<ny; y++)
+    {
+        for(int z=0; z<nz; z++)
+        {
+            // Compute j = i - velocity to backtrace, inserting current gridsquare into target list of match
             int i = y * nz + z;
             int j = i - (int)particles[i].vel_x - (int)particles[i].vel_y * nz;
             if (j >= 0 && j < ny * nz) {
               diffuseFrom[j].push_back(i);
             }
-          }
-      }
+        }
+    }
 
-      for(int y=0; y<ny; y++)
-      {
-          for(int z=0; z<nz; z++)
-          {
+    // Complete backtrace by diffusing from gridsquare backtraced to to all backtracing gridsquares
+    for (int y=0; y<ny; y++)
+    {
+        for (int z=0; z<nz; z++)
+        {
             int i = y * nz + z;
             double diffuseAmount = particles[i].density / diffuseFrom[i].size();
             for (int j = 0; j < diffuseFrom[i].size(); j++) {
               particles[diffuseFrom[i][j]].new_density += diffuseAmount;
             }
             particles[i].density -= 1.01 * diffuseAmount * diffuseFrom[i].size();
-          }
-      }
+        }
+    }
 
-  // }
-  double t_density = 0.0;
-  // for(int x=0; x<nx; x++)
-  // {
-      for(int y=0; y<ny; y++)
-      {
-          for(int z=0; z<nz; z++)
-          {
-            int i = /**x * ny * nz +*/ y * nz + z;
+    // Apply velocity term, reset sum
+    for(int y=0; y<ny; y++)
+    {
+        for(int z=0; z<nz; z++)
+        {
+            int i = y * nz + z;
             particles[i].density += particles[i].new_density;
             particles[i].new_density = 0;
+        }
+    }
+
+    // Control random movement of smoke source
+    // int smoke_move = (int)((double)rand() / RAND_MAX * 4);
+    // switch (smoke_move) {
+    //   case 0:
+    //     if (smoke_x >= 3) {
+    //       smoke_x -= 3;
+    //     }
+    //     break;
+    //   case 1:
+    //     if (smoke_y < nz - 3) {
+    //       smoke_y += 3;
+    //     }
+    //     break;
+    // }
+
+    // Spawn smoke at smoke source
+    for(int dy = smoke_x - 1; dy < smoke_x + 2; dy++)
+    {
+        for(int dz = smoke_y - 1; dz < smoke_y + 2; dz++)
+        {
+          if (dy > 0 && dy < ny - 1 && dz > 0 && dz < nz - 1) {
+            particles[dy * nz + dz].density = 3.0;
           }
-      }
-      int smoke_move = (int)((double)rand() / RAND_MAX * 4);
-      // switch (smoke_move) {
-      //   case 0:
-      //     if (smoke_x >= 3) {
-      //       smoke_x -= 3;
-      //     }
-      //     break;
-      //   case 1:
-      //     if (smoke_y < nz - 3) {
-      //       smoke_y += 3;
-      //     }
-      //     break;
-      // }
-      for(int dy = smoke_x - 1; dy < smoke_x + 2; dy++)
-      {
-          for(int dz = smoke_y - 1; dz < smoke_y + 2; dz++)
-          {
-            if (dy > 0 && dy < ny - 1 && dz > 0 && dz < nz - 1) {
-              particles[dy * nz + dz].density = 3.0;
-            }
-          }
-      }
-  // }
-  // printf("%f\n", (float)t_density);
+        }
+    }
 }
