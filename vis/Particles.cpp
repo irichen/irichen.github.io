@@ -55,7 +55,7 @@ void Particles::render() const
             if (intensity > 0.05) {
                 glPushMatrix();
                 glScalef(0.015, 0.015, 0.015);
-                glTranslatef(-300, x - 200, y - 200);
+                glTranslatef(10, x - 200, y - 200);
                 glColor4f(fabs(intensity - 0.5), intensity, 1.0 - intensity, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
