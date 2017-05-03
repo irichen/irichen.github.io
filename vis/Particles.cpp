@@ -2,16 +2,15 @@
 
 #define nx 400
 #define ny 400
-#define nz 400
 
 int smoke_x = 200;
 int smoke_y = 200;
 
 Particles::Particles()
 {
-    for(int y=0; y<ny; y++)
+    for(int y=0; y<nx; y++)
     {
-        for(int z=0; z<nz; z++)
+        for(int y=0; y<ny; y++)
         {
           ParticleGridCube pgc;
           pgc.density = 0.0;
@@ -43,16 +42,16 @@ void Particles::render() const
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
     // Generate a cube at (x, y), colored based on the density there.
-    for(int y=0; y<ny; y++)
+    for(int x=0; x<nx; x++)
     {
-        for(int z=0; z<nz; z++)
+        for(int y=0; y<ny; y++)
         {
-            int i = y * nz + z;
+            int i = x * nx + y;
             double intensity = fmin(1.0, particles[i].density / 2.0);
             if (intensity > 0.05) {
                 glPushMatrix();
                 glScalef(0.015, 0.015, 0.015);
-                glTranslatef(10, y - 200, z - 200);
+                glTranslatef(10, x - 200, y - 200);
                 glColor4f(0.0, intensity, 1.0 - intensity, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
@@ -67,36 +66,36 @@ void Particles::render() const
 void Particles::step(int elapsed_time)
 {
     // Initialize density updates to zero
-    for(int y=0; y<ny; y++)
+    for(int x=0; x<nx; x++)
     {
-        for(int z=0; z<nz; z++)
+        for(int y=0; y<ny; y++)
         {
-          int i = /**x * ny * nz*/ + y * nz + z;
+          int i = /**x * nx * ny*/ + x * nx + y;
           particles[i].new_density = 0;
         }
     }
 
     // Compute diffusion term to immediate neighbors
-    for(int y=0; y<ny; y++)
+    for(int x=0; x<nx; x++)
     {
-        for(int z=0; z<nz; z++)
+        for(int y=0; y<ny; y++)
         {
-          int i = y * nz + z;
+          int i = x * nx + y;
 
           // Compute neighbor indices into particles
           std::vector<int> diffuseTo;
 
           // Standard diffusion term
           if (y > 0) {
-            diffuseTo.push_back(i - ny);
+            diffuseTo.push_back(i - nx);
           }
-          if (y < ny - 1) {
-            diffuseTo.push_back(i + ny);
+          if (x < nx - 1) {
+            diffuseTo.push_back(i + nx);
           }
-          if (z > 0) {
+          if (y > 0) {
             diffuseTo.push_back(i - 1);
           }
-          if (z < nz - 1) {
+          if (y < ny - 1) {
             diffuseTo.push_back(i + 1);
           }
           // Compute amount to diffuse
@@ -109,41 +108,41 @@ void Particles::step(int elapsed_time)
     }
 
     // Apply diffusion term and reset summation
-    for(int y=0; y<ny; y++)
+    for(int x=0; x<nx; x++)
     {
-        for(int z=0; z<nz; z++)
+        for(int y=0; y<ny; y++)
         {
-          int i = y * nz + z;
+          int i = x * nx + y;
           particles[i].density += particles[i].new_density;
           particles[i].new_density = 0;
         }
     }
 
     // Initialize diffusion lists to zero
-    std::vector<std::vector<int>> diffuseFrom((ny * nz));
-    for(int i = 0; i < ny * nz; ++i)
+    std::vector<std::vector<int>> diffuseFrom((nx * ny));
+    for(int i = 0; i < nx * ny; ++i)
       diffuseFrom[i] = *(new std::vector<int>);
 
     // Compute velocity term, based on backtracing the velocity ray based on (x, y).vel_x and vel_y
-    for(int y=0; y<ny; y++)
+    for(int x=0; x<nx; x++)
     {
-        for(int z=0; z<nz; z++)
+        for(int y=0; y<ny; y++)
         {
             // Compute j = i - velocity to backtrace, inserting current gridsquare into target list of match
-            int i = y * nz + z;
-            int j = i - (int)particles[i].vel_x - (int)particles[i].vel_y * nz;
-            if (j >= 0 && j < ny * nz) {
+            int i = x * nx + y;
+            int j = i - (int)particles[i].vel_x - (int)particles[i].vel_y * nx;
+            if (j >= 0 && j < nx * ny) {
               diffuseFrom[j].push_back(i);
             }
         }
     }
 
     // Complete backtrace by diffusing from gridsquare backtraced to to all backtracing gridsquares
-    for (int y=0; y<ny; y++)
+    for (int x=0; x<nx; x++)
     {
-        for (int z=0; z<nz; z++)
+        for (int y=0; y<ny; y++)
         {
-            int i = y * nz + z;
+            int i = x * nx + y;
             double diffuseAmount = particles[i].density / diffuseFrom[i].size();
             for (int j = 0; j < diffuseFrom[i].size(); j++) {
               particles[diffuseFrom[i][j]].new_density += diffuseAmount;
@@ -153,11 +152,11 @@ void Particles::step(int elapsed_time)
     }
 
     // Apply velocity term, reset sum
-    for(int y=0; y<ny; y++)
+    for(int x=0; x<nx; x++)
     {
-        for(int z=0; z<nz; z++)
+        for(int y=0; y<ny; y++)
         {
-            int i = y * nz + z;
+            int i = x * nx + y;
             particles[i].density += particles[i].new_density;
             particles[i].new_density = 0;
         }
@@ -172,19 +171,19 @@ void Particles::step(int elapsed_time)
     //     }
     //     break;
     //   case 1:
-    //     if (smoke_y < nz - 3) {
+    //     if (smoke_y < ny - 3) {
     //       smoke_y += 3;
     //     }
     //     break;
     // }
 
     // Spawn smoke at smoke source
-    for(int dy = smoke_x - 1; dy < smoke_x + 2; dy++)
+    for(int dx = smoke_x - 1; dx < smoke_x + 2; dx++)
     {
-        for(int dz = smoke_y - 1; dz < smoke_y + 2; dz++)
+        for(int dy = smoke_y - 1; dy < smoke_y + 2; dy++)
         {
-          if (dy > 0 && dy < ny - 1 && dz > 0 && dz < nz - 1) {
-            particles[dy * nz + dz].density = 3.0;
+          if (dx > 0 && dx < nx - 1 && dy > 0 && dy < ny - 1) {
+            particles[dx * nx + dy].density = 3.0;
           }
         }
     }
