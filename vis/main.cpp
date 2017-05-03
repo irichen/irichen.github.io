@@ -24,6 +24,7 @@ int frame = 0;
 const int render_step = 3;
 int mx, my;
 int last_time = -1;
+bool mouse_down = false;
 
 Particles particles;
 
@@ -55,6 +56,8 @@ void idle(void)
 }
 
 void mouse(int button, int state, int x, int y);
+
+void mouse_motion(int x, int y);
 
 void motion(int x, int y);
 
@@ -112,17 +115,23 @@ void display(void)
 
 void mouse(int button, int state, int x, int y)
 {
-    if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-    {
-        printf("%f %f\n", 1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
-        particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
-        mx = x;
-        my = y;
-    }
+    // if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+    // {
+    //     mouse_down = true;
+    //     mx = x;
+    //     my = y;
+    // }
+    // if(button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+    // {
+    //     // mouse_down = false;
+    //     mx = x;
+    //     my = y;
+    // }
 }
 
 void motion(int x, int y)
 {
+    particles.spawn_smoke(1.0 - (double)y / glutGet(GLUT_WINDOW_HEIGHT), (double)x / glutGet(GLUT_WINDOW_WIDTH));
     // int dx = x - mx;
     // int dy = y - my;
     // mx = x;

@@ -164,7 +164,6 @@ void Particles::step(int elapsed_time)
 
 void Particles::spawn_smoke(double dx, double dy)
 {
-    printf("smoke coords %d %d\n", (int)(dx * nx), (int)(dy * ny));
     for(int x = 0; x < nx; x++)
     {
         for(int y = 0; y < ny; y++)
