@@ -8,17 +8,22 @@ int smoke_y = 200;
 
 Particles::Particles()
 {
-    for(int y=0; y<nx; y++)
+    for(int x = 0; x < nx; x++)
     {
         for(int y = 0; y < ny; y++)
         {
           ParticleGridCube pgc;
           pgc.density = 0.0;
-          pgc.vel_x = 0.0;
-          pgc.vel_y = 2.0;
+          pgc.vel_x = 2.0;
+          pgc.vel_y = 0.0;
           particles.push_back(pgc);
         }
     }
+}
+
+int Particles::compute_row_major(int x, int y) const
+{
+  return x + nx * y;
 }
 
 void Particles::render() const
@@ -42,17 +47,16 @@ void Particles::render() const
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
     // Generate a cube at (x, y), colored based on the density there.
-    for(int x = 0; x < nx; x++)
+    for(int y = 0; y < ny; y++)
     {
-        for(int y = 0; y < ny; y++)
+        for(int x = 0; x < nx; x++)
         {
-            int i = x * nx + y;
-            double intensity = fmin(1.0, particles[i].density / 2.0);
+            double intensity = fmin(1.0, particles[compute_row_major(x, y)].density / 2.0);
             if (intensity > 0.05) {
                 glPushMatrix();
                 glScalef(0.015, 0.015, 0.015);
-                glTranslatef(10, x - 200, y - 200);
-                glColor4f(0.0, intensity, 1.0 - intensity, 1.0);
+                glTranslatef(-300, x - 200, y - 200);
+                glColor4f(fabs(intensity - 0.5), intensity, 1.0 - intensity, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
             }
@@ -70,8 +74,7 @@ void Particles::step(int elapsed_time)
     {
         for(int x = 0; x < nx; x++)
         {
-          int i = y * nx + x;
-          particles[i].new_density = 0;
+          particles[compute_row_major(x, y)].new_density = 0;
         }
     }
 
@@ -80,7 +83,7 @@ void Particles::step(int elapsed_time)
     {
         for(int x = 0; x < nx; x++)
         {
-          int i = y * nx + x;
+          int i = compute_row_major(x, y);
 
           // Compute neighbor indices into particles
           std::vector<int> diffuseTo;
@@ -89,21 +92,23 @@ void Particles::step(int elapsed_time)
           if (y > 0) {
             diffuseTo.push_back(i - nx);
           }
-          if (x < nx - 1) {
+          if (y < ny - 1) {
             diffuseTo.push_back(i + nx);
           }
-          if (y > 0) {
+          if (x > 0) {
             diffuseTo.push_back(i - 1);
           }
-          if (y < ny - 1) {
+          if (x < nx - 1) {
             diffuseTo.push_back(i + 1);
           }
           // Compute amount to diffuse
-          double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
-          for (int j = 0; j < diffuseTo.size(); j++) {
-            particles[diffuseTo[j]].new_density += diffuseAmount;
+          if (diffuseTo.size()) {
+            double diffuseAmount = particles[i].density * 0.5 / diffuseTo.size();
+            for (int j = 0; j < diffuseTo.size(); j++) {
+              particles[diffuseTo[j]].new_density += diffuseAmount;
+            }
+            particles[i].density -= 1.01 * diffuseAmount * diffuseTo.size();
           }
-          particles[i].density -= 1.01 * diffuseAmount * diffuseTo.size();
         }
     }
 
@@ -112,7 +117,7 @@ void Particles::step(int elapsed_time)
     {
         for(int x = 0; x < nx; x++)
         {
-          int i = y * nx + x;
+          int i = compute_row_major(x, y);
           particles[i].density += particles[i].new_density;
           particles[i].new_density = 0;
         }
@@ -123,34 +128,38 @@ void Particles::step(int elapsed_time)
     for(int i = 0; i < nx * ny; ++i)
       diffuseFrom[i] = *(new std::vector<int>);
 
-    // Compute velocity term, based on backtracing the velocity ray 
+    // Compute velocity term, based on backtracing the velocity ray
     // based on (x, y).vel_x and vel_y
     for(int y = 0; y < ny; y++)
     {
         for(int x = 0; x < nx; x++)
         {
-            // Compute j = i - velocity to backtrace, inserting current 
+
+            // Compute j = i - velocity to backtrace, inserting current
             // gridsquare into target list of match
-            int i = y * nx + x;
-            int j = i - (int)particles[i].vel_x - (int)particles[i].vel_y * nx;
-            if (j >= 0 && j < nx * ny) {
-              diffuseFrom[j].push_back(i);
-            }
+            int i = compute_row_major(x, y);
+            int backtrace_x = x - (int)particles[i].vel_x;
+            backtrace_x = std::max(0, std::min(nx - 1, backtrace_x));
+            int backtrace_y = y - (int)particles[i].vel_y;
+            backtrace_y = std::max(0, std::min(ny - 1, backtrace_y));
+            diffuseFrom[compute_row_major(backtrace_x, backtrace_y)].push_back(i);
         }
     }
 
     // Complete backtrace by diffusing from gridsquare backtraced to
     // all backtracing gridsquares
-    for (int y = 0; y < ny; y++)
+    for(int y = 0; y < ny; y++)
     {
-        for (int x = 0; x < nx; x++)
+        for(int x = 0; x < nx; x++)
         {
-            int i = y * nx + x;
-            double diffuseAmount = particles[i].density / diffuseFrom[i].size();
-            for (int j = 0; j < diffuseFrom[i].size(); j++) {
-              particles[diffuseFrom[i][j]].new_density += diffuseAmount;
+            int i = compute_row_major(x, y);
+            if (diffuseFrom[i].size()) {
+                double diffuseAmount = particles[i].density / diffuseFrom[i].size();
+                for (int j = 0; j < diffuseFrom[i].size(); j++) {
+                  particles[diffuseFrom[i][j]].new_density += diffuseAmount;
+                }
+                particles[i].density -= 1.01 * diffuseAmount * diffuseFrom[i].size();
             }
-            particles[i].density -= 1.01 * diffuseAmount * diffuseFrom[i].size();
         }
     }
 
@@ -159,7 +168,7 @@ void Particles::step(int elapsed_time)
     {
         for(int x = 0; x < nx; x++)
         {
-            int i = y * nx + x;
+            int i = compute_row_major(x, y);
             particles[i].density += particles[i].new_density;
             particles[i].new_density = 0;
         }
@@ -186,7 +195,7 @@ void Particles::step(int elapsed_time)
         for(int dy = smoke_y - 1; dy < smoke_y + 2; dy++)
         {
           if (dx > 0 && dx < nx - 1 && dy > 0 && dy < ny - 1) {
-            particles[dx * nx + dy].density = 3.0;
+            particles[dx + nx * dy].density = 3.0;
           }
         }
     }
