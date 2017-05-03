@@ -9,22 +9,17 @@ int smoke_y = 200;
 
 Particles::Particles()
 {
-    // for(int x=0; x<nx; x++)
-    // {
-        for(int y=0; y<ny; y++)
+    for(int y=0; y<ny; y++)
+    {
+        for(int z=0; z<nz; z++)
         {
-            for(int z=0; z<nz; z++)
-            {
-              ParticleGridCube pgc;
-              // if ((/**abs(x - 3) +*/ abs(y - 3) + abs(z - 3)) < 5) {
-              //   pgc.density = 5.0;
-              // } else {
-                pgc.density = 0.0;
-              // }
-              particles.push_back(pgc);
-            }
+          ParticleGridCube pgc;
+          pgc.density = 0.0;
+          pgc.vel_x = 2.0;
+          pgc.vel_y = 2.0;
+          particles.push_back(pgc);
         }
-    // }
+    }
 }
 
 void Particles::render() const
@@ -53,12 +48,12 @@ void Particles::render() const
             for(int z=0; z<nz; z++)
             {
               int i = y * nz + z;
-              double intensity = fmin(0.5, particles[i].density / 5.0);
+              double intensity = fmin(0.8, particles[i].density / 3.0);
               if (intensity > 0.05) {
                 glPushMatrix();
                 glScalef(0.015, 0.015, 0.015);
                 glTranslatef(10, y - 200, z - 200);
-                glColor4f(intensity, intensity, intensity, 1.0);
+                glColor4f(0.0, intensity, 1.0 - intensity, 1.0);
                 glutSolidCube(0.99999);
                 glPopMatrix();
               }
@@ -89,23 +84,17 @@ void Particles::step(int elapsed_time)
       {
           for(int z=0; z<nz; z++)
           {
-            int i = /**x * ny * nz*/ + y * nz + z;
+            int i = y * nz + z;
 
             // Compute neighbor indices into particles
             std::vector<int> diffuseTo;
-            // if (x > 0) {
-            //   diffuseTo.push_back(i - ny * nz);
-            // }
-            // if (x < nx - 1) {
-            //   diffuseTo.push_back(i + ny * nz);
-            // }
+
+            // Standard diffusion term
+            if (y > 0) {
+              diffuseTo.push_back(i - ny);
+            }
             if (y < ny - 1) {
               diffuseTo.push_back(i + ny);
-              diffuseTo.push_back(i + ny);
-              diffuseTo.push_back(i + ny);
-              diffuseTo.push_back(i + 2 * ny);
-              diffuseTo.push_back(i + 2 * ny);
-              diffuseTo.push_back(i + 3 * ny);
             }
             if (z > 0) {
               diffuseTo.push_back(i - 1);
@@ -118,9 +107,48 @@ void Particles::step(int elapsed_time)
             for (int j = 0; j < diffuseTo.size(); j++) {
               particles[diffuseTo[j]].new_density += diffuseAmount;
             }
-            particles[i].density -= 1.001 * diffuseAmount * diffuseTo.size();
+            particles[i].density -= 1.01 * diffuseAmount * diffuseTo.size();
           }
       }
+
+      for(int y=0; y<ny; y++)
+      {
+          for(int z=0; z<nz; z++)
+          {
+            int i = y * nz + z;
+            particles[i].density += particles[i].new_density;
+          }
+      }
+
+      std::vector<std::vector<int>> diffuseFrom((ny * nz));
+      for(int i = 0; i < ny * nz; ++i)
+        diffuseFrom[i] = *(new std::vector<int>);
+
+      for(int y=0; y<ny; y++)
+      {
+          for(int z=0; z<nz; z++)
+          {
+            int i = y * nz + z;
+            int j = i - (int)particles[i].vel_x - (int)particles[i].vel_y * nz;
+            if (j >= 0 && j < ny * nz) {
+              diffuseFrom[j].push_back(i);
+            }
+          }
+      }
+
+      for(int y=0; y<ny; y++)
+      {
+          for(int z=0; z<nz; z++)
+          {
+            int i = y * nz + z;
+            double diffuseAmount = particles[i].density / diffuseFrom[i].size();
+            for (int j = 0; j < diffuseFrom[i].size(); j++) {
+              particles[diffuseFrom[i][j]].new_density += diffuseAmount;
+            }
+            particles[i].density -= 1.01 * diffuseAmount * diffuseFrom.size();
+          }
+      }
+
   // }
   double t_density = 0.0;
   // for(int x=0; x<nx; x++)
@@ -135,18 +163,18 @@ void Particles::step(int elapsed_time)
           }
       }
       int smoke_move = (int)((double)rand() / RAND_MAX * 4);
-      switch (smoke_move) {
-        case 0:
-          if (smoke_x >= 3) {
-            smoke_x -= 3;
-          }
-          break;
-        case 1:
-          if (smoke_y < nz - 3) {
-            smoke_y += 3;
-          }
-          break;
-      }
+      // switch (smoke_move) {
+      //   case 0:
+      //     if (smoke_x >= 3) {
+      //       smoke_x -= 3;
+      //     }
+      //     break;
+      //   case 1:
+      //     if (smoke_y < nz - 3) {
+      //       smoke_y += 3;
+      //     }
+      //     break;
+      // }
       for(int dy = smoke_x - 1; dy < smoke_x + 2; dy++)
       {
           for(int dz = smoke_y - 1; dz < smoke_y + 2; dz++)

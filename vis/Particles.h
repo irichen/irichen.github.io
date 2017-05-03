@@ -33,6 +33,8 @@ private:
     {
         double new_density;
         double density;
+        double vel_x;
+        double vel_y;
     };
 
     std::vector<ParticleGridCube> particles;
