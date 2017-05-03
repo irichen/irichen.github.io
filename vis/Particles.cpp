@@ -15,7 +15,7 @@ Particles::Particles()
         {
           ParticleGridCube pgc;
           pgc.density = 0.0;
-          pgc.vel_x = 2.0;
+          pgc.vel_x = 0.0;
           pgc.vel_y = 2.0;
           particles.push_back(pgc);
         }
@@ -48,7 +48,7 @@ void Particles::render() const
             for(int z=0; z<nz; z++)
             {
               int i = y * nz + z;
-              double intensity = fmin(0.8, particles[i].density / 3.0);
+              double intensity = fmin(1.0, particles[i].density / 2.0);
               if (intensity > 0.05) {
                 glPushMatrix();
                 glScalef(0.015, 0.015, 0.015);
@@ -117,8 +117,10 @@ void Particles::step(int elapsed_time)
           {
             int i = y * nz + z;
             particles[i].density += particles[i].new_density;
+            particles[i].new_density = 0;
           }
       }
+
 
       std::vector<std::vector<int>> diffuseFrom((ny * nz));
       for(int i = 0; i < ny * nz; ++i)
@@ -145,7 +147,7 @@ void Particles::step(int elapsed_time)
             for (int j = 0; j < diffuseFrom[i].size(); j++) {
               particles[diffuseFrom[i][j]].new_density += diffuseAmount;
             }
-            particles[i].density -= 1.01 * diffuseAmount * diffuseFrom.size();
+            particles[i].density -= 1.01 * diffuseAmount * diffuseFrom[i].size();
           }
       }
 
@@ -159,7 +161,7 @@ void Particles::step(int elapsed_time)
           {
             int i = /**x * ny * nz +*/ y * nz + z;
             particles[i].density += particles[i].new_density;
-            t_density += particles[i].density;
+            particles[i].new_density = 0;
           }
       }
       int smoke_move = (int)((double)rand() / RAND_MAX * 4);
