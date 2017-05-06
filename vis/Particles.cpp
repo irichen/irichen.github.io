@@ -1,8 +1,8 @@
 #include "Particles.h"
 
-#define nx 400
-#define ny 400
-#define scale 0.0135
+#define nx 1000
+#define ny 1000
+#define scale 0.006
 #define diffusionRate 0.75
 #define diffusionLoss 1.0
 #define advectionLoss 0.985
@@ -76,9 +76,8 @@ void Particles::render(int color_opt) const
                     glColor4f(1.0, 1.0, 1.0, intensity);
                     break;
                   case 4:
-                    intensity = particles[i].vel_x + 10 * particles[i].vel_y;
-                    printf("%f\n", intensity);
-                    glColor4f(sin(intensity)/2 + 0.5, sin(intensity + 1.5)/2 + 0.5, sin(intensity + 3.0)/2 + 0.5, 1.0);
+                    double intensity2 = atan2(particles[i].vel_y, particles[i].vel_x);
+                    glColor4f(intensity * (sin(intensity2 + 2.25)/2 + 0.5), intensity * (sin(intensity2 + 1.25)/2 + 0.5), intensity * (sin(intensity2 + 0.25)/2 + 0.5), 1.0);
                     break;
                 }
                 glutSolidCube(1.0);
@@ -223,6 +222,15 @@ void Particles::set_vel_field(int preset)
 {
     switch (preset)
     {
+        case 0:
+            for(int x = 0; x < nx; x++)
+            {
+                for(int y = 0; y < ny; y++)
+                {
+                  particles[compute_row_major(x, y)].vel_y = 0.0;
+                }
+            }
+            break;
         case 1:
             for(int x = 0; x < nx; x++)
             {
@@ -255,11 +263,7 @@ void Particles::set_vel_field(int preset)
             {
                 for(int y = 0; y < ny; y++)
                 {
-                  if ((x / 60) % 2) {
-                    particles[compute_row_major(x, y)].vel_y = 1.5;
-                  } else {
-                    particles[compute_row_major(x, y)].vel_y = -1.5;
-                  }
+                  particles[compute_row_major(x, y)].vel_y = ((double)rand() / RAND_MAX * 7) - 3.5;
                 }
             }
             break;
@@ -268,7 +272,20 @@ void Particles::set_vel_field(int preset)
             {
                 for(int y = 0; y < ny; y++)
                 {
-                  particles[compute_row_major(x, y)].vel_y = ((double)rand() / RAND_MAX * 7) - 3.5;
+                  if ((x / 60) % 2) {
+                    particles[compute_row_major(x, y)].vel_y = 1.5;
+                  } else {
+                    particles[compute_row_major(x, y)].vel_y = -1.5;
+                  }
+                }
+            }
+            break;
+        case 6:
+            for(int x = 0; x < nx; x++)
+            {
+                for(int y = 0; y < ny; y++)
+                {
+                  particles[compute_row_major(x, y)].vel_y = (double)abs(x % 60 - 30) / 10 - 1.5;
                 }
             }
             break;

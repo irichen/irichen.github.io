@@ -78,19 +78,25 @@ void keyboard(unsigned char c, int x, int y)
           color_opt = 4;
           break;
       case 'u' :
-          particles.set_vel_field(1);
+          particles.set_vel_field(0);
           break;
       case 'i' :
-          particles.set_vel_field(2);
+          particles.set_vel_field(1);
           break;
       case 'o' :
-          particles.set_vel_field(3);
+          particles.set_vel_field(2);
           break;
       case 'p' :
-          particles.set_vel_field(4);
+          particles.set_vel_field(3);
           break;
       case 'j' :
+          particles.set_vel_field(4);
+          break;
+      case 'k' :
           particles.set_vel_field(5);
+          break;
+      case 'l' :
+          particles.set_vel_field(6);
           break;
       case 't' :
           size++;
