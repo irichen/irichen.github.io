@@ -98,6 +98,8 @@ void keyboard(unsigned char c, int x, int y)
       case 'p' :
           pause = !pause;
           break;
+      case 'c' :
+          particles.clear();
     }
 }
 

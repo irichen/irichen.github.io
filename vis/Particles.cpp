@@ -9,9 +9,9 @@
 
 Particles::Particles()
 {
-    for(int x = 0; x < nx; x++)
+    for(int y = 0; y < ny; y++)
     {
-        for(int y = 0; y < ny; y++)
+        for(int x = 0; x < nx; x++)
         {
           ParticleGridCube pgc;
           pgc.density = 0.0;
@@ -30,6 +30,18 @@ int Particles::compute_row_major(int x, int y) const
 double Particles::lerp(double x, double v0, double v1) const
 {
   return v0 + x * (v1 - v0);
+}
+
+
+void Particles::clear() {
+    for(int y = 0; y < ny; y++)
+    {
+        for(int x = 0; x < nx; x++)
+        {
+            int i = compute_row_major (x, y);
+            particles[i].density = 0.0;
+        }
+    }
 }
 
 void Particles::render(int color_opt) const
