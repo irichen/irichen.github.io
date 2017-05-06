@@ -65,40 +65,37 @@ void keyboard(unsigned char c, int x, int y)
 {
     switch(c)
     {
-      case 'q':
+      case 'g':
           color_opt = 1;
           break;
-      case 'w':
+      case 'b':
           color_opt = 2;
           break;
-      case 'r' :
+      case 'v' :
           color_opt = 4;
           break;
-      case 'i' :
+      case 'r' :
           particles.set_vel_field(1);
           break;
-      case 'o' :
+      case 'n' :
           particles.set_vel_field(2);
           break;
-      case 'p' :
+      case 'l' :
           particles.set_vel_field(3);
           break;
-      case 'j' :
+      case 't' :
           particles.set_vel_field(4);
           break;
-      case 'k' :
-          particles.set_vel_field(5);
-          break;
-      case 'l' :
+      case 'z' :
           particles.set_vel_field(6);
           break;
-      case 't' :
+      case '=' :
           size++;
           break;
-      case 'y' :
+      case '-' :
           size--;
           break;
-      case 'a' :
+      case 'p' :
           pause = !pause;
           break;
     }
