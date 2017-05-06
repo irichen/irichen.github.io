@@ -222,15 +222,6 @@ void Particles::set_vel_field(int preset)
 {
     switch (preset)
     {
-        case 0:
-            for(int x = 0; x < nx; x++)
-            {
-                for(int y = 0; y < ny; y++)
-                {
-                  particles[compute_row_major(x, y)].vel_y = 0.0;
-                }
-            }
-            break;
         case 1:
             for(int x = 0; x < nx; x++)
             {

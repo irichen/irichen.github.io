@@ -71,14 +71,8 @@ void keyboard(unsigned char c, int x, int y)
       case 'w':
           color_opt = 2;
           break;
-      case 'e' :
-          color_opt = 3;
-          break;
       case 'r' :
           color_opt = 4;
-          break;
-      case 'u' :
-          particles.set_vel_field(0);
           break;
       case 'i' :
           particles.set_vel_field(1);
