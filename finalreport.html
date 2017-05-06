@@ -98,7 +98,7 @@
                 <center><img src="img/advection.png" style="height:200px;"><br></center>
                 <figcaption align="middle"><font size="-1">Source: Jos Stam's paper</figcaption><br></font>
 
-                We decided to add in a new variable <code>advectionLoss</code> in our density calculation formula, to help the smoke fade out faster in order for it to look more realistic. After some tweaking of the variable, we found that setting <code>advectionLoss = 0.985</code> yielded good results. Additionally, we decided to bilinearly interpolate betweeen the densities at the nearby particles of the previous particle to reduce the pixelation of the simulation and fade out harsh edges more: <br><br>
+                We decided to add in a new variable <code>advectionLoss</code> in our density calculation formula, to help the smoke fade out faster in order for it to look more realistic. After some tweaking of the variable, we found that setting <code>advectionLoss = 0.985</code> yielded good results. This means that every time step, 1.5% of the density is lost in the advection step. Additionally, we decided to bilinearly interpolate betweeen the densities at the nearby particles of the previous particle to reduce the pixelation of the simulation and fade out harsh edges more: <br><br>
 
                 <center><code><font size="+1.5">
                     density = advectionLoss * bilerp(backtrace_x, backtrace_y);
