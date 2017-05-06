@@ -33,15 +33,15 @@
 
         <div>
             <h2><center>
-                <a href="/index.html">Proposal</a>
+                <a href="index.html">Proposal</a>
                 &bull;
-                <a href="/milestone.html">Milestone</a>
+                <a href="milestone.html">Milestone</a>
             </h2></center>
 
             <h2 align="middle">Abstract</h2>
 
             <p>
-                For our final project, we created an interactive smoke simulation that is able to render realistic animations in real-time. We implemented a 2-dimensional grid-based approach and represented blahblahblah add stuff here.
+                For our final project, we created an interactive smoke simulation that renders realistic animations in real-time. We implemented a 2-dimensional grid-based approach to represent smoke in a scene and animated the smoke with diffusion and advection of the smoke densities in a fixed velocity field at each time step. The user is able to draw virtual smoke in the scene with their mouse and also update the smoke parameters (i.e. size, color, and velocity) using various keyboard commands.
             </p>
 
             <h2 align="middle">Technical Approach</h2>
@@ -110,6 +110,10 @@
             <p>
                 <b><font size="+1">&#9758; Boundary Conditions</font></b>
                 
+                <p>
+                    With a grid-based approach, since we often looped over the particles and updated the densities based upon neighboring particles, often we ran into edge conditions that needed to be handled separately. For example:
+                </p>
+
                 <ul>
                     <li>
                         In our diffusing densities step, if the particle was on a boundary, we only calculated the indices of the 3 nearest neighbors to diffuse to.
@@ -125,26 +129,98 @@
 
             <p>
                 <b><font size="+1">&#9758; User Interactivity</font></b><br><br>
+
+                We used <code>glutMouseFunc</code> and <code>glutMotionFunc</code> to implement interactivity with the user's mouse. When the user clicks and/or drags on the screen, a blob of smoke will be generated at that point. <br><br>
+
+                We also used <code>glutKeyboardFunc</code> to implement keyboard input. We mainly implemented keyboard functions to toggle between various smoke color settings, as well as different velocity fields. The user can also tweak the size of the generated smoke blobs to their liking. They can also pause/unpause the simulation. <br>
+
+                <table>
+                <thead>
+                <tr>
+                  <th>Command</th>
+                  <th align="center">Keys</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>Smoke color RGB values based on particle density</td>
+                  <td align="center"><code>Q</code></td>
+                </tr>
+                <tr>
+                  <td>Bluish colored smoke</td>
+                  <td align="center"><code>W</code></td>
+                </tr>
+                <tr>
+                  <td>Smoke alpha value based on particle density</td>
+                  <td align="center"><code>E</code></td>
+                </tr>
+                <tr>
+                  <td>Noisy smoke</td>
+                  <td align="center"><code>R</code></td>
+                </tr>
+                <tr>
+                  <td>Rightwards wind</td>
+                  <td align="center"><code>U</code></td>
+                </tr>
+                <tr>
+                  <td>Normal velocity field (upwards biased)</td>
+                  <td align="center"><code>I</code></td>
+                </tr>
+                <tr>
+                  <td>Leftwards wind</td>
+                  <td align="center"><code>O</code></td>
+                </tr>
+                <tr>
+                  <td>Zigzag motion</td>
+                  <td align="center"><code>P</code></td>
+                </tr>
+                <tr>
+                  <td>Decrease size</td>
+                  <td align="center"><code>Y</code></td>
+                </tr>
+                <tr>
+                  <td>Increase size</td>
+                  <td align="center"><code>T</code></td>
+                </tr>
+                <tr>
+                  <td>Pause/unpause</td>
+                  <td align="center"><code>A</code></td>
+                </tr>
+                </tbody>
+                </table>
             </p>
 
-            <h2 align="middle">Problems and Lessons Learned</h2>
+            <h2 align="middle">Lessons Learned</h2>
 
             <p>
-
+                We learned a lot about the physics behind fluid dynamics and read numerous papers regarding the Navier-Stokes equations. Since most of the formulas we ended up using for implementing diffusion and advection were based upon a paper but then fine-tuned with different parameters until the simulation was to our liking, we learned that what works on paper doesn't necessarily mean it will work the same in practice. Ultimately, we both gained a huge appreciation for all the work that is put into generating realistic simulations, and we know there is even a lot more that could be done to improve the quality of our simulation.
             </p>
 
             <h2 align="middle">Results</h2>
 
+            <div style="text-align: center;">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/sRsw8u35sKs" frameborder="0" allowfullscreen></iframe>
+            </div>
 
             <h2 align="middle">References</h2>
 
             <p>
+                <a href="http://www.alanzucconi.com/2016/03/09/simulate-smoke-with-shaders/">
+                    Alan Zucconi - How to simulate smoke with shaders
+                </a><br>
+                <a href="http://www.dgp.toronto.edu/people/stam/reality/Research/pdf/GDC03.pdf">
+                    Jos Stam - Real-time fluid dynamics for games
+                </a><br>
             </p>
 
             <h2 align="middle">Contributions</h2>
 
             <p>
+                The majority of the project was completed together in person. We met up to brainstorm project ideas, render the 2D particle grid, and implement the diffusion and velocity field code, as well as boundary conditions and mouse interactivity. <br><br>
+
+                In addition to our group work sessions, Iris worked on the initial research and project proposal webpage, the final presentation slides, and the final report, and Max worked on fine tuning the diffusion and advection parameters, keyboard interactivity, milestone deliverables, and recording the final video submission. 
             </p>
+
         </div>
         
     </body>

@@ -77,7 +77,6 @@ void Particles::render(int color_opt) const
                     break;
                   case 4:
                     intensity = particles[i].vel_x + 10 * particles[i].vel_y;
-                    printf("%f\n", intensity);
                     glColor4f(sin(intensity)/2 + 0.5, sin(intensity + 1.5)/2 + 0.5, sin(intensity + 3.0)/2 + 0.5, 1.0);
                     break;
                 }

@@ -89,9 +89,6 @@ void keyboard(unsigned char c, int x, int y)
       case 'p' :
           particles.set_vel_field(4);
           break;
-      case 'j' :
-          particles.set_vel_field(5);
-          break;
       case 't' :
           size++;
           break;
