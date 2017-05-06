@@ -1,0 +1,227 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <style>
+            body {
+                padding: 100px;
+                width: 1000px;
+                margin: auto;
+                text-align: left;
+                font-weight: 300;
+                font-family: 'Open Sans', sans-serif;
+                color: #121212;
+            }
+            h1,
+            h2,
+            h3,
+            h4 {
+                font-family: 'Source Sans Pro', sans-serif;
+            }
+
+        </style>
+        <title>Final Report</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
+        <h1 align="middle">Final Project: Smoke Simulator | Final Report</h1>
+        <h2 align="middle">Iris Chen, CS184-aeh</h2>
+        <h2 align="middle">Max Feng, CS184-afy</h2>
+
+        <div>
+            <h2><center>
+                <a href="index.html">Proposal</a>
+                &bull;
+                <a href="milestone.html">Milestone</a>
+            </h2></center>
+
+            <h2 align="middle">Abstract</h2>
+
+            <p>
+                For our final project, we created an interactive smoke simulation that renders realistic animations in real-time. We implemented a 2-dimensional grid-based approach to represent smoke in a scene and animated the smoke with diffusion and advection of the smoke densities in a fixed velocity field at each time step. The user is able to draw virtual smoke in the scene with their mouse and also update the smoke parameters (i.e. size, color, and velocity) using various keyboard commands.
+            </p>
+
+            <h2 align="middle">Technical Approach</h2>
+
+            <p>
+                <b><font size="+1">&#9758; Rendering</font></b><br><br>
+
+                We decided to implement a grid-based approach to our fluid dynamics simulation instead of a particle-based one. This is because particle-based methods are extremely computationally expensive, and after extensive research, we concluded that a grid-based approach would end up looking much more realistic in addition to having faster render times. <br><br>
+
+                We represent our space by 2D NxN grid of <code>Particle</code> objects. Each particle is rendered at a fixed <code>(x, y)</code> position within the screen, and stores its own <code>density</code> and <code>velocity</code> values. When the animation renders, we loop through each <code>Particle</code> and draw a <code>glutSolidCube</code> at that position. We color the cube based upon the <code>density</code> value of the corresponding <code>Particle</code> object - for example, a particle with a larger density value would be rendered at a more intense color than one with a lower density to represent a difference in smoke particles at that location. <br><br>
+
+                To optimize the rendering process, we only drew the cube if the density was above a certain threshold (i.e. 0.01). This made a significant improvement on our render times since a majority of the particles are low density, and we did not want to waste any computing resources rendering invisible black boxes on the screen.
+            </p>
+
+            <p>
+                <b><font size="+1">&#9758; Diffusing the Densities</font></b><br><br>
+
+                For our smoke animation to look as realistic as possible, we needed the particle densities to slowly diffuse to its neighbors at every time step. We kept the time step small to ensure that the animation would be smooth, and we implemented diffusion in our <code>step</code> function, which is called at each time step.
+                
+                <center><img src="img/diffuse.png" style="height:200px;"><br></center>
+                <figcaption align="middle"><font size="-1">Source: Jos Stam's paper</figcaption><br></font>
+
+                For each particle, we calculated the indices of the 4 nearest neighbors. We then computed the amount to diffuse based on the particle's current density value and a <code>diffusionRate</code> variable. We decided to diffuse equally to each of its neighbors by incrementing each neighbor particle's density and decrementing the original particle's density. To calculate the amount to increment each neighboring particle by, we came up with the following formula: <br><br>
+
+                <center><code><font size="+1.5">
+                    diffuseAmount = density * diffusionRate / numNeighbors  <br>
+                    neighborParticle.density += diffuseAmount
+                </code></center></font><br>
+
+                To enforce mass conservation in our diffusion step, we made sure to decrement the original particle's density by the same amount that was lost to its neighbors particles: <br><br>
+
+                <center><code><font size="+1.5">density -= diffuseAmount * numNeighbors</code></center></font><br>
+
+                After trying some different values for <code>diffusionRate</code>, we ultimately settled upon a diffusion rate of <code>0.75</code>. Effectively, this means that at every time step, exactly 75% of each particle's density is distributed equally among its neighboring particles.
+
+            </p>
+
+            <p>
+                <b><font size="+1">&#9758; Adding the Velocity Field</font></b><br><br>
+
+                To make our simulation more realistic, in addition to the diffusion of particle density to its neighbors, we implemented an advection component to our density calculation at each time step. More specifically, since we want to simulate realistic smoke behavior, we implemented convection by biasing our velocity field towards the positive y-direction. <br><br>
+
+                When the simulation starts up, it initializes the velocity field (represented by the NxN grid of particles, each with its own <code>velocity</code> value) with a fixed velocity in the y-direction and a randomized velocity in the x-direction. We want the particle densities to move according to the velocity field in a stable manner. <br><br>
+
+                We mostly followed the linear backtracing technique proposed in Stam's paper. Looping through each particle, we backtraced to its previous position using its velocity and calculated its new density based on the density at the backtraced position: <br><br>
+
+                <center><code><font size="+1.5">
+                    backtrace_x = x - vel_x <br>
+                    backtrace_y = y - vel_y
+                </code></center></font><br>
+
+                <center><img src="img/advection.png" style="height:200px;"><br></center>
+                <figcaption align="middle"><font size="-1">Source: Jos Stam's paper</figcaption><br></font>
+
+                We decided to add in a new variable <code>advectionLoss</code> in our density calculation formula, to help the smoke fade out faster in order for it to look more realistic. After some tweaking of the variable, we found that setting <code>advectionLoss = 0.985</code> yielded good results. Additionally, we decided to bilinearly interpolate betweeen the densities at the nearby particles of the previous particle to reduce the pixelation of the simulation and fade out harsh edges more: <br><br>
+
+                <center><code><font size="+1.5">
+                    density = advectionLoss * bilerp(backtrace_x, backtrace_y);
+                </code></center></font><br>
+
+                <center><img src="img/bilinear.png" style="height:200px;"><br></center>
+                <figcaption align="middle"><font size="-1">Source: Lecture Slide</figcaption><br></font>
+
+            </p>
+
+            <p>
+                <b><font size="+1">&#9758; Boundary Conditions</font></b>
+                
+                <p>
+                    With a grid-based approach, since we often looped over the particles and updated the densities based upon neighboring particles, often we ran into edge conditions that needed to be handled separately. For example:
+                </p>
+
+                <ul>
+                    <li>
+                        In our diffusing densities step, if the particle was on a boundary, we only calculated the indices of the 3 nearest neighbors to diffuse to.
+                    </li><br>
+                    <li>
+                        When computing the backtraced position, we clipped the <code>(x, y)</code> positions to <code>(1, N-2)</code> to ensure the bilerp would still work.
+                    </li><br>
+                    <li>
+                        Since we began noticing that smoke would begin to pool at the edges of the screen, at each time step, we zeroed out the densities of all the edge particles. When the simulation runs, it looks like the the smoke simply dissippates out of the box.
+                    </li>
+                </ul>
+            </p>
+
+            <p>
+                <b><font size="+1">&#9758; User Interactivity</font></b><br><br>
+
+                We used <code>glutMouseFunc</code> and <code>glutMotionFunc</code> to implement interactivity with the user's mouse. When the user clicks and/or drags on the screen, a blob of smoke will be generated at that point. <br><br>
+
+                We also used <code>glutKeyboardFunc</code> to implement keyboard input. We mainly implemented keyboard functions to toggle between various smoke color settings, as well as different velocity fields. The user can also tweak the size of the generated smoke blobs to their liking. They can also pause/unpause the simulation. <br>
+
+                <table>
+                <thead>
+                <tr>
+                  <th>Command</th>
+                  <th align="center">Keys</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>Smoke color RGB values based on particle density</td>
+                  <td align="center"><code>Q</code></td>
+                </tr>
+                <tr>
+                  <td>Bluish colored smoke</td>
+                  <td align="center"><code>W</code></td>
+                </tr>
+                <tr>
+                  <td>Smoke alpha value based on particle density</td>
+                  <td align="center"><code>E</code></td>
+                </tr>
+                <tr>
+                  <td>Noisy smoke</td>
+                  <td align="center"><code>R</code></td>
+                </tr>
+                <tr>
+                  <td>Rightwards wind</td>
+                  <td align="center"><code>U</code></td>
+                </tr>
+                <tr>
+                  <td>Normal velocity field (upwards biased)</td>
+                  <td align="center"><code>I</code></td>
+                </tr>
+                <tr>
+                  <td>Leftwards wind</td>
+                  <td align="center"><code>O</code></td>
+                </tr>
+                <tr>
+                  <td>Zigzag motion</td>
+                  <td align="center"><code>P</code></td>
+                </tr>
+                <tr>
+                  <td>Decrease size</td>
+                  <td align="center"><code>Y</code></td>
+                </tr>
+                <tr>
+                  <td>Increase size</td>
+                  <td align="center"><code>T</code></td>
+                </tr>
+                <tr>
+                  <td>Pause/unpause</td>
+                  <td align="center"><code>A</code></td>
+                </tr>
+                </tbody>
+                </table>
+            </p>
+
+            <h2 align="middle">Lessons Learned</h2>
+
+            <p>
+                We learned a lot about the physics behind fluid dynamics and read numerous papers regarding the Navier-Stokes equations. Since most of the formulas we ended up using for implementing diffusion and advection were based upon a paper but then fine-tuned with different parameters until the simulation was to our liking, we learned that what works on paper doesn't necessarily mean it will work the same in practice. Ultimately, we both gained a huge appreciation for all the work that is put into generating realistic simulations, and we know there is even a lot more that could be done to improve the quality of our simulation.
+            </p>
+
+            <h2 align="middle">Results</h2>
+
+            <div style="text-align: center;">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/sRsw8u35sKs" frameborder="0" allowfullscreen></iframe>
+            </div>
+
+            <h2 align="middle">References</h2>
+
+            <p>
+                <a href="http://www.alanzucconi.com/2016/03/09/simulate-smoke-with-shaders/">
+                    Alan Zucconi - How to simulate smoke with shaders
+                </a><br>
+                <a href="http://www.dgp.toronto.edu/people/stam/reality/Research/pdf/GDC03.pdf">
+                    Jos Stam - Real-time fluid dynamics for games
+                </a><br>
+            </p>
+
+            <h2 align="middle">Contributions</h2>
+
+            <p>
+                The majority of the project was completed together in person. We met up to brainstorm project ideas, render the 2D particle grid, and implement the diffusion and velocity field code, as well as boundary conditions and mouse interactivity. <br><br>
+
+                In addition to our group work sessions, Iris worked on the initial research and project proposal webpage, the final presentation slides, and the final report, and Max worked on fine tuning the diffusion and advection parameters, keyboard interactivity, milestone deliverables, and recording the final video submission. 
+            </p>
+
+        </div>
+        
+    </body>
+</html>
